@@ -17,14 +17,18 @@ import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 import edu.hitsz.aircraft.AbstractAircraft;
 import edu.hitsz.aircraft.EliteEnemy;
+import edu.hitsz.aircraft.EliteEnemyFactory;
+import edu.hitsz.aircraft.EnemyFactory;
 import edu.hitsz.aircraft.HeroAircraft;
 import edu.hitsz.aircraft.MobEnemy;
+import edu.hitsz.aircraft.MobEnemyFactory;
 import edu.hitsz.basic.AbstractFlyingObject;
 import edu.hitsz.bullet.BaseBullet;
 import edu.hitsz.prop.BaseProp;
-import edu.hitsz.prop.BloodProp;
-import edu.hitsz.prop.BombProp;
-import edu.hitsz.prop.BulletProp;
+import edu.hitsz.prop.PropFactory;
+import edu.hitsz.prop.BloodPropFactory;
+import edu.hitsz.prop.BombPropFactory;
+import edu.hitsz.prop.BulletPropFactory;
 
 /**
  * 游戏主面板，游戏启动
@@ -55,6 +59,18 @@ public class Game extends JPanel {
 
     private final List<BaseProp> props;
 
+    /**
+     * 创建敌机的工厂类
+     */
+    EnemyFactory mobEnemyFactory;
+    EnemyFactory eliteEnemyFactory;
+
+    /**
+     * 创建道具的工厂类
+     */
+    PropFactory bloodPropFactory;
+    PropFactory bombPropFactory;
+    PropFactory bulletPropFactory;
     /**
      * 敌机常量设置
      */
@@ -107,10 +123,20 @@ public class Game extends JPanel {
     }
 
     public Game() {
-        heroAircraft = new HeroAircraft(
+        // 使用单例模式重构英雄机
+        heroAircraft = HeroAircraft.getInstance(
                 Main.WINDOW_WIDTH / 2,
                 Main.WINDOW_HEIGHT - ImageManager.HERO_IMAGE.getHeight(),
                 0, 0, 100);
+
+        // 提前加载对应的敌机工厂和敌机list
+        mobEnemyFactory = new MobEnemyFactory();
+        eliteEnemyFactory = new EliteEnemyFactory();
+
+        // 提前加载对应的道具工厂
+        bloodPropFactory = new BloodPropFactory();
+        bombPropFactory = new BombPropFactory();
+        bulletPropFactory = new BulletPropFactory();
 
         enemyAircrafts = new LinkedList<>();
         heroBullets = new LinkedList<>();
@@ -208,19 +234,9 @@ public class Game extends JPanel {
     private void generateEnemyAircraftsByRandom() {
         int randomChoice = random.nextInt(SUPER_ENEMY + 1); // 从[0,1]之间选择一个
         if (randomChoice == MOD_ENEMY) {
-            enemyAircrafts.add(new MobEnemy(
-                    (int) (Math.random() * (Main.WINDOW_WIDTH - ImageManager.MOB_ENEMY_IMAGE.getWidth())),
-                    (int) (Math.random() * Main.WINDOW_HEIGHT * 0.05),
-                    0,
-                    10,
-                    30));
+            enemyAircrafts.add(mobEnemyFactory.createEnemy());
         } else if (randomChoice == SUPER_ENEMY) {
-            enemyAircrafts.add(new EliteEnemy(
-                    (int) (Math.random() * (Main.WINDOW_WIDTH - ImageManager.MOB_ENEMY_IMAGE.getWidth())),
-                    (int) (Math.random() * Main.WINDOW_HEIGHT * 0.05),
-                    0,
-                    10,
-                    30));
+            enemyAircrafts.add(eliteEnemyFactory.createEnemy());
         }
     }
 
@@ -339,28 +355,28 @@ public class Game extends JPanel {
             int randomChoice = random.nextInt(0, 3);
             BaseProp prop;
 
-            // 生成道具
+            // 使用工厂模式生成道具
             switch (randomChoice) {
                 case BLOOD_PROP:
-                    prop = new BloodProp(enemyAircraft.getLocationX(),
+                    prop = bloodPropFactory.createProp(enemyAircraft.getLocationX(),
                             enemyAircraft.getLocationY(),
                             0,
                             enemyAircraft.getSpeedY());
                     break;
                 case BOMB_PROP:
-                    prop = new BombProp(enemyAircraft.getLocationX(),
+                    prop = bombPropFactory.createProp(enemyAircraft.getLocationX(),
                             enemyAircraft.getLocationY(),
                             0,
                             enemyAircraft.getSpeedY());
                     break;
                 case BULLET_PROP:
-                    prop = new BulletProp(enemyAircraft.getLocationX(),
+                    prop = bulletPropFactory.createProp(enemyAircraft.getLocationX(),
                             enemyAircraft.getLocationY(),
                             0,
                             enemyAircraft.getSpeedY());
                     break;
                 default:
-                    prop = new BloodProp(enemyAircraft.getLocationX(),
+                    prop = bloodPropFactory.createProp(enemyAircraft.getLocationX(),
                             enemyAircraft.getLocationY(),
                             0,
                             enemyAircraft.getSpeedY());

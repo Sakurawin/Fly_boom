@@ -2,7 +2,9 @@
 
 ## 项目类图
 
-### Mermaid 类图
+### 1. 英雄机单例模式类图
+
+#### Mermaid 类图
 
 ```mermaid
 classDiagram
@@ -45,92 +47,27 @@ classDiagram
         -int shootNum
         -int power
         -int direction
-        +HeroAircraft(int, int, int, int, int)
+        -HeroAircraft instance$
+        -HeroAircraft(int, int, int, int, int)
+        +getInstance(int, int, int, int, int)$ HeroAircraft
         +forward() void
         +shoot() List~BaseBullet~
         +increaseHp(int) void
     }
 
-    class MobEnemy {
-        +MobEnemy(int, int, int, int, int)
-        +forward() void
-        +shoot() List~BaseBullet~
-    }
-
-    class EliteEnemy {
-        -int shootNum
-        -int power
-        -int direction
-        +EliteEnemy(int, int, int, int, int)
-        +shoot() List~BaseBullet~
-    }
-
-    class BaseBullet {
-        <<abstract>>
-        -int power
-        +BaseBullet(int, int, int, int, int)
-        +forward() void
-        +getPower() int
-    }
-
-    class HeroBullet {
-        +HeroBullet(int, int, int, int, int)
-    }
-
-    class EnemyBullet {
-        +EnemyBullet(int, int, int, int, int)
-    }
-
-    class BaseProp {
-        <<abstract>>
-        +BaseProp(int, int, int, int)
-        +forward() void
-        +active(HeroAircraft) void*
-    }
-
-    class BloodProp {
-        -int hpReward
-        +BloodProp(int, int, int, int)
-        +active(HeroAircraft) void
-    }
-
-    class BombProp {
-        +BombProp(int, int, int, int)
-        +active(HeroAircraft) void
-    }
-
-    class BulletProp {
-        +BulletProp(int, int, int, int)
-        +active(HeroAircraft) void
-    }
-
     %% 继承关系
     AbstractFlyingObject <|-- AbstractAircraft
-    AbstractFlyingObject <|-- BaseBullet
-    AbstractFlyingObject <|-- BaseProp
-
     AbstractAircraft <|-- HeroAircraft
-    AbstractAircraft <|-- MobEnemy
 
-    MobEnemy <|-- EliteEnemy
-
-    BaseBullet <|-- HeroBullet
-    BaseBullet <|-- EnemyBullet
-
-    BaseProp <|-- BloodProp
-    BaseProp <|-- BombProp
-    BaseProp <|-- BulletProp
-
-    %% 依赖关系
-    AbstractAircraft ..> BaseBullet : shoots
-    BaseProp ..> HeroAircraft : affects
+    note for HeroAircraft "单例模式实现\n- 私有构造函数\n- 静态实例变量\n- 静态获取方法"
 ```
 
-### PlantUML 类图
+#### PlantUML 类图
 
 ```plantuml
 @startuml
-'https://plantuml.com/class-diagram
+!theme plain
+title 英雄机单例模式类图
 
 abstract class AbstractFlyingObject
 {
@@ -172,10 +109,121 @@ class HeroAircraft {
     - shootNum:int
     - power:int
     - direction:int
-    + HeroAircraft(int locationX, int locationY, int speedX, int speedY, int hp)
+    - {static} instance:HeroAircraft
+    - HeroAircraft(int locationX, int locationY, int speedX, int speedY, int hp)
+    + {static} getInstance(int locationX, int locationY, int speedX, int speedY, int hp):HeroAircraft
     + forward():void
     + shoot():List<BaseBullet>
     + increaseHp(int hp):void
+}
+
+AbstractFlyingObject <|-- AbstractAircraft
+AbstractAircraft <|-- HeroAircraft
+
+note right of HeroAircraft : 单例模式实现\n- 私有构造函数\n- 静态实例变量\n- 公共静态获取方法
+
+@enduml
+```
+
+---
+
+### 2. 敌机工厂模式类图
+
+#### Mermaid 类图
+
+```mermaid
+classDiagram
+    class AbstractFlyingObject {
+        <<abstract>>
+        #int locationX
+        #int locationY
+        #int speedX
+        #int speedY
+        #BufferedImage image
+        #int width
+        #int height
+        #boolean isValid
+        +AbstractFlyingObject()
+        +AbstractFlyingObject(int, int, int, int)
+        +forward() void
+        +crash(AbstractFlyingObject) boolean
+    }
+
+    class AbstractAircraft {
+        <<abstract>>
+        #int maxHp
+        #int hp
+        +AbstractAircraft(int, int, int, int, int)
+        +decreaseHp(int) void
+        +getHp() int
+        +shoot() List~BaseBullet~*
+    }
+
+    class MobEnemy {
+        +MobEnemy(int, int, int, int, int)
+        +forward() void
+        +shoot() List~BaseBullet~
+    }
+
+    class EliteEnemy {
+        -int shootNum
+        -int power
+        -int direction
+        +EliteEnemy(int, int, int, int, int)
+        +shoot() List~BaseBullet~
+    }
+
+    class EnemyFactory {
+        <<interface>>
+        +createEnemy() AbstractAircraft*
+    }
+
+    class MobEnemyFactory {
+        +createEnemy() AbstractAircraft
+    }
+
+    class EliteEnemyFactory {
+        +createEnemy() AbstractAircraft
+    }
+
+    %% 继承关系
+    AbstractFlyingObject <|-- AbstractAircraft
+    AbstractAircraft <|-- MobEnemy
+    MobEnemy <|-- EliteEnemy
+
+    %% 工厂模式关系
+    EnemyFactory <|.. MobEnemyFactory
+    EnemyFactory <|.. EliteEnemyFactory
+
+    %% 依赖关系
+    MobEnemyFactory ..> MobEnemy : creates
+    EliteEnemyFactory ..> EliteEnemy : creates
+
+    note for EnemyFactory "工厂接口\n定义创建敌机的标准"
+```
+
+#### PlantUML 类图
+
+```plantuml
+@startuml
+!theme plain
+title 敌机工厂模式类图
+
+abstract class AbstractFlyingObject {
+    # locationX:int
+    # locationY:int
+    # speedX:int
+    # speedY:int
+    + forward():void
+    + crash(AbstractFlyingObject):boolean
+}
+
+abstract class AbstractAircraft {
+    # maxHp:int
+    # hp:int
+    + AbstractAircraft(int,int,int,int,int)
+    + decreaseHp(int):void
+    + {abstract} shoot():List<BaseBullet>
 }
 
 class MobEnemy {
@@ -192,22 +240,130 @@ class EliteEnemy {
     + shoot():List<BaseBullet>
 }
 
-abstract class BaseBullet
-{
-    - power:int
-    + BaseBullet(int locationX, int locationY, int speedX, int speedY, int power)
+interface EnemyFactory {
+    + {abstract} createEnemy():AbstractAircraft
+}
+
+class MobEnemyFactory {
+    + createEnemy():AbstractAircraft
+}
+
+class EliteEnemyFactory {
+    + createEnemy():AbstractAircraft
+}
+
+AbstractFlyingObject <|-- AbstractAircraft
+AbstractAircraft <|-- MobEnemy
+MobEnemy <|-- EliteEnemy
+
+EnemyFactory <|.. MobEnemyFactory
+EnemyFactory <|.. EliteEnemyFactory
+
+MobEnemyFactory ..> MobEnemy : creates
+EliteEnemyFactory ..> EliteEnemy : creates
+
+note right of EnemyFactory : 工厂接口\n定义创建敌机的标准
+note bottom of MobEnemyFactory : 普通敌机工厂\n负责创建MobEnemy
+note bottom of EliteEnemyFactory : 精英敌机工厂\n负责创建EliteEnemy
+
+@enduml
+```
+
+---
+
+### 3. 道具工厂模式类图
+
+#### Mermaid 类图
+
+```mermaid
+classDiagram
+    class AbstractFlyingObject {
+        <<abstract>>
+        #int locationX
+        #int locationY
+        #int speedX
+        #int speedY
+        #BufferedImage image
+        #int width
+        #int height
+        #boolean isValid
+        +AbstractFlyingObject()
+        +AbstractFlyingObject(int, int, int, int)
+        +forward() void
+    }
+
+    class BaseProp {
+        <<abstract>>
+        +BaseProp(int, int, int, int)
+        +forward() void
+        +active(HeroAircraft) void*
+    }
+
+    class BloodProp {
+        -int hpReward
+        +BloodProp(int, int, int, int)
+        +active(HeroAircraft) void
+    }
+
+    class BombProp {
+        +BombProp(int, int, int, int)
+        +active(HeroAircraft) void
+    }
+
+    class BulletProp {
+        +BulletProp(int, int, int, int)
+        +active(HeroAircraft) void
+    }
+
+    class PropFactory {
+        <<interface>>
+        +createProp(int, int, int, int) BaseProp*
+    }
+
+    class BloodPropFactory {
+        +createProp(int, int, int, int) BaseProp
+    }
+
+    class BombPropFactory {
+        +createProp(int, int, int, int) BaseProp
+    }
+
+    class BulletPropFactory {
+        +createProp(int, int, int, int) BaseProp
+    }
+
+    %% 继承关系
+    AbstractFlyingObject <|-- BaseProp
+    BaseProp <|-- BloodProp
+    BaseProp <|-- BombProp
+    BaseProp <|-- BulletProp
+
+    %% 工厂模式关系
+    PropFactory <|.. BloodPropFactory
+    PropFactory <|.. BombPropFactory
+    PropFactory <|.. BulletPropFactory
+
+    %% 依赖关系
+    BloodPropFactory ..> BloodProp : creates
+    BombPropFactory ..> BombProp : creates
+    BulletPropFactory ..> BulletProp : creates
+
+    note for PropFactory "道具工厂接口\n定义创建道具的标准"
+```
+
+#### PlantUML 类图
+
+```plantuml
+@startuml
+!theme plain
+title 道具工厂模式类图
+
+abstract class AbstractFlyingObject {
+    # locationX:int
+    # locationY:int
+    # speedX:int
+    # speedY:int
     + forward():void
-    + getPower():int
-}
-
-class HeroBullet {
-    + HeroBullet(int locationX, int locationY,
-     int speedX, int speedY, int power)
-}
-
-class EnemyBullet {
-    + EnemyBullet(int locationX, int locationY,
-     int speedX, int speedY, int power)
 }
 
 abstract class BaseProp
@@ -233,21 +389,39 @@ class BulletProp {
     + active(HeroAircraft heroAircraft):void
 }
 
-AbstractFlyingObject <|-- AbstractAircraft
-AbstractFlyingObject <|-- BaseBullet
+interface PropFactory {
+    + {abstract} createProp(int locationX, int locationY, int speedX, int speedY):BaseProp
+}
+
+class BloodPropFactory {
+    + createProp(int locationX, int locationY, int speedX, int speedY):BaseProp
+}
+
+class BombPropFactory {
+    + createProp(int locationX, int locationY, int speedX, int speedY):BaseProp
+}
+
+class BulletPropFactory {
+    + createProp(int locationX, int locationY, int speedX, int speedY):BaseProp
+}
+
 AbstractFlyingObject <|-- BaseProp
-
-AbstractAircraft <|-- HeroAircraft
-AbstractAircraft <|-- MobEnemy
-
-MobEnemy <|-- EliteEnemy
-
-BaseBullet <|-- HeroBullet
-BaseBullet <|-- EnemyBullet
-
 BaseProp <|-- BloodProp
 BaseProp <|-- BombProp
 BaseProp <|-- BulletProp
+
+PropFactory <|.. BloodPropFactory
+PropFactory <|.. BombPropFactory
+PropFactory <|.. BulletPropFactory
+
+BloodPropFactory ..> BloodProp : creates
+BombPropFactory ..> BombProp : creates
+BulletPropFactory ..> BulletProp : creates
+
+note right of PropFactory : 道具工厂接口\n定义创建道具的标准
+note bottom of BloodPropFactory : 血量道具工厂
+note bottom of BombPropFactory : 炸弹道具工厂
+note bottom of BulletPropFactory : 子弹道具工厂
 
 @enduml
 ```

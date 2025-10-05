@@ -29,15 +29,41 @@ public class HeroAircraft extends AbstractAircraft {
      */
     private int direction = -1;
 
+    private static HeroAircraft instance;
+
     /**
+     * 私有构造方法，英雄机采用单例模式，因此通过接口返回
+     * 
      * @param locationX 英雄机位置x坐标
      * @param locationY 英雄机位置y坐标
      * @param speedX    英雄机射出的子弹的基准速度（英雄机无特定速度）
      * @param speedY    英雄机射出的子弹的基准速度（英雄机无特定速度）
      * @param hp        初始生命值
      */
-    public HeroAircraft(int locationX, int locationY, int speedX, int speedY, int hp) {
+    private HeroAircraft(int locationX, int locationY, int speedX, int speedY, int hp) {
         super(locationX, locationY, speedX, speedY, hp);
+    }
+
+    /**
+     * 获取实例的方法，保证全局只有一个实例
+     * 
+     * @param locationX
+     * @param locationY
+     * @param speedX
+     * @param speedY
+     * @param hp
+     * @return
+     */
+    public static HeroAircraft getInstance(int locationX, int locationY, int speedX, int speedY, int hp) {
+        if (instance == null) {
+            synchronized (HeroAircraft.class) {
+                // 使用类上锁同时双重保证原子性
+                if (instance == null) {
+                    instance = new HeroAircraft(locationX, locationY, speedX, speedY, hp);
+                }
+            }
+        }
+        return instance;
     }
 
     @Override
