@@ -1,0 +1,37 @@
+@startuml HeroSingleton
+
+title HeroAircraft Singleton Pattern
+
+class HeroAircraft {
+  -{static} instance : HeroAircraft
+  -HeroAircraft()
+  +{static} getInstance() : HeroAircraft
+  +{static} reset() : void
+  +shoot() : List
+  +increaseHp(int) : void
+}
+
+class AbstractAircraft {
+  #locationX : int
+  #locationY : int
+  #hp : int
+  +forward() : void
+  +shoot() : List
+}
+
+class Game {
+  -heroAircraft : HeroAircraft
+  +Game()
+}
+
+HeroAircraft --|> AbstractAircraft
+Game --> HeroAircraft : uses
+
+note right of HeroAircraft
+Singleton with DCL
+- volatile instance
+- synchronized block
+- double-check locking
+end note
+
+@enduml

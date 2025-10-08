@@ -1,0 +1,70 @@
+@startuml PropFactory
+title Prop Factory Pattern
+
+abstract class AbstractProp {
+  #locationX : int
+  #locationY : int
+  #speedX : int
+  #speedY : int
+  +AbstractProp(locationX:int, locationY:int, speedX:int, speedY:int)
+  +forward() : void
+  +effect(heroAircraft:HeroAircraft) : void
+}
+
+class BloodProp {
+  +BloodProp(locationX:int, locationY:int, speedX:int, speedY:int)
+  +effect(heroAircraft:HeroAircraft) : void
+}
+
+class BombProp {
+  +BombProp(locationX:int, locationY:int, speedX:int, speedY:int)
+  +effect(heroAircraft:HeroAircraft) : void
+}
+
+class FireProp {
+  +FireProp(locationX:int, locationY:int, speedX:int, speedY:int)
+  +effect(heroAircraft:HeroAircraft) : void
+}
+
+abstract class PropFactory {
+  +{abstract} createProp(locationX:int, locationY:int, speedX:int, speedY:int) : AbstractProp
+}
+
+class BloodPropFactory {
+  +createProp(locationX:int, locationY:int, speedX:int, speedY:int) : AbstractProp
+}
+
+class BombPropFactory {
+  +createProp(locationX:int, locationY:int, speedX:int, speedY:int) : AbstractProp
+}
+
+class FirePropFactory {
+  +createProp(locationX:int, locationY:int, speedX:int, speedY:int) : AbstractProp
+}
+
+class Game {
+  -bloodPropFactory : PropFactory
+  -bombPropFactory : PropFactory
+  -firePropFactory : PropFactory
+  +createRandomProp() : AbstractProp
+}
+
+AbstractProp <|-- BloodProp
+AbstractProp <|-- BombProp
+AbstractProp <|-- FireProp
+PropFactory <|-- BloodPropFactory
+PropFactory <|-- BombPropFactory
+PropFactory <|-- FirePropFactory
+BloodPropFactory ..> BloodProp : creates
+BombPropFactory ..> BombProp : creates
+FirePropFactory ..> FireProp : creates
+Game --> PropFactory : uses
+
+note right of PropFactory
+Factory Method Pattern
+- Abstract factory for props
+- Each concrete factory creates specific prop type
+- Game uses factories to create props dynamically
+end note
+
+@enduml

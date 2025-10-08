@@ -1,0 +1,56 @@
+@startuml EnemyFactory
+title Enemy Factory Pattern
+
+abstract class AbstractAircraft {
+  #locationX : int
+  #locationY : int
+  #hp : int
+  +forward() : void
+  +shoot() : List
+}
+
+class MobEnemy {
+  +MobEnemy()
+  +forward() : void
+  +shoot() : List
+}
+
+class EliteEnemy {
+  +EliteEnemy()
+  +forward() : void
+  +shoot() : List
+}
+
+abstract class EnemyFactory {
+  +{abstract} createEnemy() : AbstractAircraft
+}
+
+class MobEnemyFactory {
+  +createEnemy() : AbstractAircraft
+}
+
+class EliteEnemyFactory {
+  +createEnemy() : AbstractAircraft
+}
+
+class Game {
+  -enemyFactory : EnemyFactory
+  +setEnemyFactory(factory : EnemyFactory) : void
+  +createNewEnemy() : AbstractAircraft
+}
+
+AbstractAircraft <|-- MobEnemy
+AbstractAircraft <|-- EliteEnemy
+EnemyFactory <|-- MobEnemyFactory
+EnemyFactory <|-- EliteEnemyFactory
+MobEnemyFactory ..> MobEnemy : creates
+EliteEnemyFactory ..> EliteEnemy : creates
+Game --> EnemyFactory : uses
+
+note right of EnemyFactory
+Factory Method Pattern
+- Abstract factory defines interface
+- Concrete factories create specific enemies
+end note
+
+@enduml
