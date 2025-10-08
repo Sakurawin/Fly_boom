@@ -13,8 +13,8 @@ public abstract class EnemyFactory {
     /**
      * 创建敌机的抽象方法
      * 
-     * @param locationX X坐标
-     * @param locationY Y坐标
+     * @param locationX X的坐标
+     * @param locationY Y的坐标
      * @param speedX    X方向速度
      * @param speedY    Y方向速度
      * @param hp        生命值
