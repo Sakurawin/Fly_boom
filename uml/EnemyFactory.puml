@@ -33,24 +33,56 @@ class EliteEnemyFactory {
   +createEnemy() : AbstractAircraft
 }
 
+class ElitePlusEnemy {
+  +ElitePlusEnemy()
+  +forward() : void
+  +shoot() : List
+}
+
+class ElitePlusEnemyFactory {
+  +createEnemy() : AbstractAircraft
+}
+
+class BossEnemy {
+  +BossEnemy()
+  +forward() : void
+  +shoot() : List
+}
+
+class BossEnemyFactory {
+  +createEnemy() : AbstractAircraft
+}
+
 class Game {
-  -enemyFactory : EnemyFactory
-  +setEnemyFactory(factory : EnemyFactory) : void
-  +createNewEnemy() : AbstractAircraft
+  -mobEnemyFactory : EnemyFactory
+  -eliteEnemyFactory : EnemyFactory
+  -elitePlusEnemyFactory : EnemyFactory
+  -bossEnemyFactory : EnemyFactory
+  +createEnemies() : void
+  +shouldSpawnBoss() : boolean
+  +spawnBoss() : void
 }
 
 AbstractAircraft <|-- MobEnemy
 AbstractAircraft <|-- EliteEnemy
+AbstractAircraft <|-- ElitePlusEnemy
+AbstractAircraft <|-- BossEnemy
 EnemyFactory <|-- MobEnemyFactory
 EnemyFactory <|-- EliteEnemyFactory
+EnemyFactory <|-- ElitePlusEnemyFactory
+EnemyFactory <|-- BossEnemyFactory
 MobEnemyFactory ..> MobEnemy : creates
 EliteEnemyFactory ..> EliteEnemy : creates
+ElitePlusEnemyFactory ..> ElitePlusEnemy : creates
+BossEnemyFactory ..> BossEnemy : creates
 Game --> EnemyFactory : uses
 
 note right of EnemyFactory
 Factory Method Pattern
 - Abstract factory defines interface
 - Concrete factories create specific enemies
+- ElitePlusEnemy: periodic spawn, horizontal movement, fan-shaped bullets
+- BossEnemy: score threshold trigger, hovering movement, circular bullets
 end note
 
 @enduml

@@ -1,7 +1,9 @@
 src/edu/hitsz/aircraft/MobEnemy.java
 src/edu/hitsz/aircraft/AbstractAircraft.java
+src/edu/hitsz/aircraft/ElitePlusEnemy.java
 src/edu/hitsz/aircraft/EliteEnemy.java
 src/edu/hitsz/aircraft/HeroAircraft.java
+src/edu/hitsz/aircraft/factory/ElitePlusEnemyFactory.java
 src/edu/hitsz/aircraft/factory/MobEnemyFactory.java
 src/edu/hitsz/aircraft/factory/EnemyFactory.java
 src/edu/hitsz/aircraft/factory/EliteEnemyFactory.java

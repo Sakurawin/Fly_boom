@@ -21,7 +21,7 @@ public class HeroAircraft extends AbstractAircraft {
     /**
      * 子弹一次发射数量
      */
-    private int shootNum = 1;
+    private int shootNum = 5;
 
     /**
      * 子弹伤害

@@ -52,6 +52,21 @@ public class Game extends JPanel {
      * 当前得分
      */
     private int score = 0;
+
+    /**
+     * Boss触发分数阈值
+     */
+    private int bossScoreThreshold = 500;
+
+    /**
+     * 当前Boss出现次数
+     */
+    private int bossCount = 0;
+
+    /**
+     * Boss是否已经出现（防止重复生成）
+     */
+    private boolean bossSpawned = false;
     /**
      * 当前时刻
      */
@@ -65,6 +80,13 @@ public class Game extends JPanel {
     private int cycleTime = 0;
 
     /**
+     * 超级精英敌机生成周期（ms）
+     * 每隔一定周期随机产生
+     */
+    private int elitePlusCycleDuration = 8000; // 8秒周期
+    private int elitePlusCycleTime = 0;
+
+    /**
      * 游戏结束标志
      */
     private boolean gameOverFlag = false;
@@ -74,6 +96,8 @@ public class Game extends JPanel {
      */
     private final EnemyFactory mobEnemyFactory;
     private final EnemyFactory eliteEnemyFactory;
+    private final EnemyFactory elitePlusEnemyFactory;
+    private final EnemyFactory bossEnemyFactory;
 
     /**
      * 道具工厂
@@ -86,6 +110,8 @@ public class Game extends JPanel {
         // 初始化敌机工厂
         mobEnemyFactory = new MobEnemyFactory();
         eliteEnemyFactory = new EliteEnemyFactory();
+        elitePlusEnemyFactory = new ElitePlusEnemyFactory();
+        bossEnemyFactory = new BossEnemyFactory();
 
         // 初始化道具工厂
         bloodPropFactory = new BloodPropFactory();
@@ -151,6 +177,25 @@ public class Game extends JPanel {
                 shootAction();
             }
 
+            // 超级精英敌机周期性生成
+            if (elitePlusCountAndNewCycleJudge()) {
+                // 每隔一定周期随机产生超级精英敌机
+                if (Math.random() < 0.6) { // 60%概率生成
+                    enemyAircrafts.add(elitePlusEnemyFactory.createEnemy(
+                            (int) (Math.random()
+                                    * (Main.WINDOW_WIDTH - ImageManager.ELITE_PLUS_ENEMY_IMAGE.getWidth())),
+                            (int) (Math.random() * Main.WINDOW_HEIGHT * 0.05),
+                            5, // 左右移动速度
+                            8, // 向下移动速度
+                            100)); // 更高的生命值
+                }
+            }
+
+            // Boss敌机分数阈值触发生成
+            if (shouldSpawnBoss()) {
+                spawnBoss();
+            }
+
             // 子弹移动
             bulletsMoveAction();
 
@@ -199,6 +244,51 @@ public class Game extends JPanel {
             return true;
         } else {
             return false;
+        }
+    }
+
+    /**
+     * 超级精英敌机周期判断
+     */
+    private boolean elitePlusCountAndNewCycleJudge() {
+        elitePlusCycleTime += timeInterval;
+        if (elitePlusCycleTime >= elitePlusCycleDuration) {
+            // 跨越到新的周期
+            elitePlusCycleTime %= elitePlusCycleDuration;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * 判断是否应该生成Boss
+     */
+    private boolean shouldSpawnBoss() {
+        // 当分数达到阈值且Boss还未生成时
+        if (score >= bossScoreThreshold && !bossSpawned) {
+            return true;
+        }
+        // 每次击败Boss后，下次Boss需要更高的分数
+        if (score >= bossScoreThreshold + (bossCount * 1000) && !bossSpawned) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 生成Boss敌机
+     */
+    private void spawnBoss() {
+        if (!bossSpawned) {
+            enemyAircrafts.add(bossEnemyFactory.createEnemy(
+                    Main.WINDOW_WIDTH / 2 - 40, // Boss居中出现
+                    100, // Boss悬浮在界面上方
+                    3, // 左右移动速度
+                    0, // 不向下移动
+                    500 + (bossCount * 200))); // Boss生命值随次数增长
+            bossSpawned = true;
+            System.out.println("Boss出现！第" + (bossCount + 1) + "次");
         }
     }
 
@@ -290,6 +380,59 @@ public class Game extends JPanel {
                             } else {
                                 // 90% - 100%: 不掉落
                             }
+                        } else if (enemyAircraft instanceof ElitePlusEnemy) {
+                            // 超级精英敌机坠毁，随机掉落<=1个道具
+                            double r = Math.random();
+                            int propX = enemyAircraft.getLocationX();
+                            int propY = enemyAircraft.getLocationY();
+                            int propSpeedX = 0;
+                            int propSpeedY = 5;
+
+                            if (r < 0.25) {
+                                // 0% - 25%: 使用加血道具工厂创建加血道具
+                                props.add(bloodPropFactory.createProp(propX, propY, propSpeedX, propSpeedY));
+                            } else if (r < 0.5) {
+                                // 25% - 50%: 使用火力道具工厂创建火力道具
+                                props.add(firePropFactory.createProp(propX, propY, propSpeedX, propSpeedY));
+                            } else if (r < 0.75) {
+                                // 50% - 75%: 使用炸弹道具工厂创建炸弹道具
+                                props.add(bombPropFactory.createProp(propX, propY, propSpeedX, propSpeedY));
+                            } else {
+                                // 75% - 100%: 不掉落
+                            }
+                        } else if (enemyAircraft instanceof BossEnemy) {
+                            // Boss敌机坠毁，随机掉落<=3个道具，获得更多分数
+                            score += 200; // Boss额外奖励分数
+                            bossCount++; // Boss击败次数增加
+                            bossSpawned = false; // 重置Boss生成标志，允许下次生成
+
+                            int propX = enemyAircraft.getLocationX();
+                            int propY = enemyAircraft.getLocationY();
+                            int propSpeedX = 0;
+                            int propSpeedY = 5;
+
+                            // 掉落1-3个道具
+                            int dropCount = 1 + (int) (Math.random() * 3); // 1-3个道具
+                            for (int i = 0; i < dropCount; i++) {
+                                double r = Math.random();
+                                int offsetX = (i - 1) * 20; // 道具横向分散
+
+                                if (r < 0.33) {
+                                    // 33%概率掉落加血道具
+                                    props.add(bloodPropFactory.createProp(propX + offsetX, propY, propSpeedX,
+                                            propSpeedY));
+                                } else if (r < 0.66) {
+                                    // 33%概率掉落火力道具
+                                    props.add(
+                                            firePropFactory.createProp(propX + offsetX, propY, propSpeedX, propSpeedY));
+                                } else {
+                                    // 33%概率掉落炸弹道具
+                                    props.add(
+                                            bombPropFactory.createProp(propX + offsetX, propY, propSpeedX, propSpeedY));
+                                }
+                            }
+
+                            System.out.println("Boss被击败！掉落" + dropCount + "个道具，已击败Boss" + bossCount + "次");
                         }
                     }
                 }
