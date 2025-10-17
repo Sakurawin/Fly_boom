@@ -15,6 +15,8 @@ public class FireProp extends AbstractProp {
 
     @Override
     public void effect(HeroAircraft heroAircraft) {
-        System.out.println("FireSupply active!");
+        // 设置英雄机为散射模式
+        heroAircraft.setScatterMode();
+        System.out.println("FireSupply active! Hero can now shoot in scatter pattern!");
     }
 }

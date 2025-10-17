@@ -1,0 +1,67 @@
+@startuml ShootStrategy
+title Aircraft Shooting Strategy Pattern
+
+' Shooting strategy interface
+interface ShootStrategy {
+    + shoot(x: int, y: int, direction: int, power: int): List<AbstractBullet>
+}
+
+' Concrete shooting strategy implementations
+class DirectShootStrategy {
+    + shoot(x: int, y: int, direction: int, power: int): List<AbstractBullet>
+}
+
+class ScatterShootStrategy {
+    + shoot(x: int, y: int, direction: int, power: int): List<AbstractBullet>
+}
+
+class CircularShootStrategy {
+    + shoot(x: int, y: int, direction: int, power: int): List<AbstractBullet>
+}
+
+' Abstract aircraft class
+abstract class AbstractAircraft {
+    # shootStrategy: ShootStrategy
+    + setShootStrategy(strategy: ShootStrategy): void
+    + shoot(): List<AbstractBullet>
+}
+
+' Concrete aircraft classes
+class HeroAircraft {
+    + shoot(): List<AbstractBullet>
+}
+
+class MobEnemy {
+    + shoot(): List<AbstractBullet>
+}
+
+class EliteEnemy {
+    + shoot(): List<AbstractBullet>
+}
+
+class BossEnemy {
+    + shoot(): List<AbstractBullet>
+}
+
+' Relationships
+ShootStrategy <|.. DirectShootStrategy
+ShootStrategy <|.. ScatterShootStrategy
+ShootStrategy <|.. CircularShootStrategy
+
+AbstractAircraft --> ShootStrategy : uses
+AbstractAircraft <|-- HeroAircraft
+AbstractAircraft <|-- MobEnemy
+AbstractAircraft <|-- EliteEnemy
+AbstractAircraft <|-- BossEnemy
+
+note right of ShootStrategy
+Strategy pattern core interface
+Defines unified shooting behavior
+end note
+
+note bottom of AbstractAircraft
+Context class uses strategy
+Can dynamically switch shooting methods
+end note
+
+@enduml

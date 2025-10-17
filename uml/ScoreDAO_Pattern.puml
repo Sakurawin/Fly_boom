@@ -1,0 +1,97 @@
+@startuml ScoreDAO_Pattern
+!define RECTANGLE class
+
+title Data Access Object (DAO) Pattern - Score Leaderboard System
+
+' Entity class
+class ScoreRecord {
+    - String playerName
+    - int score
+    - LocalDateTime gameTime
+    --
+    + ScoreRecord()
+    + ScoreRecord(String, int, LocalDateTime)
+    + getPlayerName(): String
+    + setPlayerName(String): void
+    + getScore(): int
+    + setScore(int): void
+    + getGameTime(): LocalDateTime
+    + setGameTime(LocalDateTime): void
+    + compareTo(ScoreRecord): int
+    + toString(): String
+    + toFileFormat(): String
+    + fromFileFormat(String): ScoreRecord
+}
+
+' DAO interface
+interface ScoreDAO {
+    + saveScore(ScoreRecord): void
+    + getAllScores(): List<ScoreRecord>
+    + getTopScores(int): List<ScoreRecord>
+    + clearAllScores(): void
+}
+
+' DAO implementation class
+class FileScoreDAO {
+    - String SCORE_FILE_PATH
+    - Object fileLock
+    --
+    + saveScore(ScoreRecord): void
+    + getAllScores(): List<ScoreRecord>
+    + getTopScores(int): List<ScoreRecord>
+    + clearAllScores(): void
+}
+
+' Service layer
+class ScoreService {
+    - ScoreDAO scoreDAO
+    - int DEFAULT_LEADERBOARD_SIZE
+    --
+    + ScoreService()
+    + ScoreService(ScoreDAO)
+    + recordScore(String, int): void
+    + getLeaderboard(): List<ScoreRecord>
+    + getLeaderboard(int): List<ScoreRecord>
+    + printLeaderboard(): void
+    + printLeaderboard(int): void
+    + clearAllScores(): void
+    + getTotalRecordsCount(): int
+}
+
+' Client
+class Game {
+    - ScoreService scoreService
+    - int score
+    - boolean gameOverFlag
+    --
+    + Game()
+    + action(): void
+    - handleGameOver(): void
+}
+
+' Relationships
+ScoreDAO <|.. FileScoreDAO : implements
+ScoreService --> ScoreDAO : uses
+ScoreService --> ScoreRecord : creates/manages
+Game --> ScoreService : uses
+FileScoreDAO --> ScoreRecord : handles
+
+' Comments
+note right of ScoreDAO : DAO interface defines data access operations
+note right of FileScoreDAO : Concrete implementation class\nstores data to file
+note right of ScoreService : Business logic layer\nencapsulates DAO operations
+note right of Game : Client\nuses service layer to operate data
+
+' Styling
+skinparam class {
+    BackgroundColor LightYellow
+    BorderColor Black
+    ArrowColor Black
+}
+
+skinparam interface {
+    BackgroundColor LightBlue
+    BorderColor Black
+}
+
+@enduml

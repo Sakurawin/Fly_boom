@@ -1,11 +1,7 @@
 package edu.hitsz.aircraft;
 
 import edu.hitsz.application.Main;
-import edu.hitsz.bullet.BaseBullet;
-import edu.hitsz.bullet.EnemyBullet;
-
-import java.util.LinkedList;
-import java.util.List;
+import edu.hitsz.shoot.CircularShootStrategy;
 
 /**
  * Boss敌机
@@ -18,16 +14,6 @@ import java.util.List;
  * @author hitsz
  */
 public class BossEnemy extends AbstractAircraft {
-
-    /**
-     * 攻击方式：环形散射，20颗子弹
-     */
-    private int shootNum = 20;
-
-    /**
-     * 子弹伤害
-     */
-    private int power = 40;
 
     /**
      * 左右移动方向 (1:向右, -1:向左)
@@ -43,6 +29,9 @@ public class BossEnemy extends AbstractAircraft {
 
     public BossEnemy(int locationX, int locationY, int speedX, int speedY, int hp) {
         super(locationX, locationY, speedX, speedY, hp);
+        this.power = 40;
+        this.direction = 1; // 向下射击
+        this.shootStrategy = new CircularShootStrategy(); // Boss敌机环射
         // 随机初始化左右移动方向
         this.horizontalDirection = Math.random() > 0.5 ? 1 : -1;
         // 设置悬浮目标Y坐标
@@ -74,35 +63,6 @@ public class BossEnemy extends AbstractAircraft {
         }
 
         // Boss不会飞出界面（悬浮在上方）
-    }
-
-    @Override
-    public List<BaseBullet> shoot() {
-        List<BaseBullet> res = new LinkedList<>();
-        int x = this.getLocationX();
-        int y = this.getLocationY() + 40; // Boss体型较大，子弹从下方发射
-
-        // 增强环形散射：20颗子弹，360度完美均匀分布
-        for (int i = 0; i < shootNum; i++) {
-            // 计算每颗子弹的角度（弧度），确保360度均匀覆盖
-            double angle = 2.0 * Math.PI * i / shootNum;
-
-            // 子弹速度，使用double计算提高精度
-            double bulletSpeed = 5.5; // 统一子弹速度，确保环形效果
-
-            // 计算子弹的速度分量，使用更精确的计算
-            int speedX = (int) Math.round(bulletSpeed * Math.cos(angle));
-            int speedY = (int) Math.round(bulletSpeed * Math.sin(angle));
-
-            // 子弹初始位置：在Boss周围形成标准圆形阵列
-            int shootRadius = 25; // 发射半径，形成更明显的圆形
-            int bulletX = x + (int) Math.round(shootRadius * Math.cos(angle));
-            int bulletY = y + (int) Math.round(shootRadius * Math.sin(angle));
-
-            BaseBullet bullet = new EnemyBullet(bulletX, bulletY, speedX, speedY, power);
-            res.add(bullet);
-        }
-        return res;
     }
 
     /**

@@ -1,10 +1,8 @@
 package edu.hitsz.aircraft;
 
-import edu.hitsz.bullet.BaseBullet;
-import edu.hitsz.bullet.HeroBullet;
-
-import java.util.LinkedList;
-import java.util.List;
+import edu.hitsz.shoot.HeroDirectShootStrategy;
+import edu.hitsz.shoot.HeroScatterShootStrategy;
+import edu.hitsz.shoot.HeroCircularShootStrategy;
 
 /**
  * 英雄飞机，游戏玩家操控
@@ -16,24 +14,21 @@ public class HeroAircraft extends AbstractAircraft {
     // 使用volatile保证多线程下的可见性与禁止指令重排序（DCL 必须）
     private static volatile HeroAircraft instance;
 
-    /** 攻击方式 */
-
-    /**
-     * 子弹一次发射数量
-     */
-    private int shootNum = 5;
-
-    /**
-     * 子弹伤害
-     */
-    private int power = 30;
-
-    /**
-     * 子弹射击方向 (向上发射：1，向下发射：-1)
-     */
-    private int direction = -1;
-
     private final int maxHp;
+
+    /**
+     * 火力状态枚举
+     */
+    public enum FireMode {
+        NORMAL, // 普通模式：直射
+        SCATTER, // 散射模式：获得火力道具
+        CIRCULAR // 环射模式：获得超级火力道具
+    }
+
+    /**
+     * 当前火力状态
+     */
+    private FireMode currentFireMode = FireMode.NORMAL;
 
     /**
      * @param locationX 英雄机位置x坐标
@@ -46,6 +41,9 @@ public class HeroAircraft extends AbstractAircraft {
     private HeroAircraft(int locationX, int locationY, int speedX, int speedY, int hp) {
         super(locationX, locationY, speedX, speedY, hp);
         this.maxHp = hp;
+        this.power = 30;
+        this.direction = -1; // 向上射击
+        this.shootStrategy = new HeroDirectShootStrategy(); // 默认直射
     }
 
     /**
@@ -91,26 +89,40 @@ public class HeroAircraft extends AbstractAircraft {
         // 英雄机由鼠标控制，不通过forward函数移动
     }
 
-    @Override
     /**
-     * 通过射击产生子弹
-     * 
-     * @return 射击出的子弹List
+     * 设置火力模式为散射（获得火力道具）
      */
-    public List<BaseBullet> shoot() {
-        List<BaseBullet> res = new LinkedList<>();
-        int x = this.getLocationX();
-        int y = this.getLocationY() + direction * 2;
-        int speedX = 0;
-        int speedY = this.getSpeedY() + direction * 5;
-        BaseBullet bullet;
-        for (int i = 0; i < shootNum; i++) {
-            // 子弹发射位置相对飞机位置向前偏移
-            // 多个子弹横向分散
-            bullet = new HeroBullet(x + (i * 2 - shootNum + 1) * 10, y, speedX, speedY, power);
-            res.add(bullet);
-        }
-        return res;
+    public void setScatterMode() {
+        this.currentFireMode = FireMode.SCATTER;
+        this.shootStrategy = new HeroScatterShootStrategy();
+        System.out.println("Hero fire mode changed to SCATTER");
+    }
+
+    /**
+     * 设置火力模式为环射（获得超级火力道具）
+     */
+    public void setSuperFireMode() {
+        this.currentFireMode = FireMode.CIRCULAR;
+        this.shootStrategy = new HeroCircularShootStrategy();
+        System.out.println("Hero fire mode changed to CIRCULAR");
+    }
+
+    /**
+     * 重置火力模式为普通模式
+     */
+    public void resetFireMode() {
+        this.currentFireMode = FireMode.NORMAL;
+        this.shootStrategy = new HeroDirectShootStrategy();
+        System.out.println("Hero fire mode reset to NORMAL");
+    }
+
+    /**
+     * 获取当前火力模式
+     * 
+     * @return 当前火力模式
+     */
+    public FireMode getCurrentFireMode() {
+        return currentFireMode;
     }
 
 }

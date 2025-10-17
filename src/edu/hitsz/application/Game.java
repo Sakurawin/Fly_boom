@@ -5,10 +5,8 @@ import edu.hitsz.aircraft.factory.*;
 import edu.hitsz.bullet.BaseBullet;
 import edu.hitsz.basic.AbstractFlyingObject;
 import edu.hitsz.prop.AbstractProp;
-import edu.hitsz.prop.BloodProp;
-import edu.hitsz.prop.BombProp;
-import edu.hitsz.prop.FireProp;
 import edu.hitsz.prop.factory.*;
+import edu.hitsz.service.ScoreService;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 import javax.swing.*;
@@ -92,6 +90,11 @@ public class Game extends JPanel {
     private boolean gameOverFlag = false;
 
     /**
+     * 得分服务
+     */
+    private final ScoreService scoreService;
+
+    /**
      * 敌机工厂
      */
     private final EnemyFactory mobEnemyFactory;
@@ -105,8 +108,12 @@ public class Game extends JPanel {
     private final PropFactory bloodPropFactory;
     private final PropFactory bombPropFactory;
     private final PropFactory firePropFactory;
+    private final PropFactory superFirePropFactory;
 
     public Game() {
+        // 初始化得分服务
+        scoreService = new ScoreService();
+
         // 初始化敌机工厂
         mobEnemyFactory = new MobEnemyFactory();
         eliteEnemyFactory = new EliteEnemyFactory();
@@ -117,6 +124,7 @@ public class Game extends JPanel {
         bloodPropFactory = new BloodPropFactory();
         bombPropFactory = new BombPropFactory();
         firePropFactory = new FirePropFactory();
+        superFirePropFactory = new SuperFirePropFactory();
         heroAircraft = HeroAircraft.getInstance(
                 Main.WINDOW_WIDTH / 2,
                 Main.WINDOW_HEIGHT - ImageManager.HERO_IMAGE.getHeight(),
@@ -220,6 +228,9 @@ public class Game extends JPanel {
                 executorService.shutdown();
                 gameOverFlag = true;
                 System.out.println("Game Over!");
+
+                // 记录得分并显示排行榜
+                handleGameOver();
             }
 
         };
@@ -361,27 +372,7 @@ public class Game extends JPanel {
                         // 获得分数，产生道具补给
                         score += 10;
                         if (enemyAircraft instanceof EliteEnemy) {
-                            // 精英敌机坠毁，按权重掉落道具：血/火/炸弹各30%，10%不掉落
-                            double r = Math.random();
-                            int propX = enemyAircraft.getLocationX();
-                            int propY = enemyAircraft.getLocationY();
-                            int propSpeedX = 0;
-                            int propSpeedY = 5;
-
-                            if (r < 0.3) {
-                                // 0% - 30%: 使用加血道具工厂创建加血道具
-                                props.add(bloodPropFactory.createProp(propX, propY, propSpeedX, propSpeedY));
-                            } else if (r < 0.6) {
-                                // 30% - 60%: 使用火力道具工厂创建火力道具
-                                props.add(firePropFactory.createProp(propX, propY, propSpeedX, propSpeedY));
-                            } else if (r < 0.9) {
-                                // 60% - 90%: 使用炸弹道具工厂创建炸弹道具
-                                props.add(bombPropFactory.createProp(propX, propY, propSpeedX, propSpeedY));
-                            } else {
-                                // 90% - 100%: 不掉落
-                            }
-                        } else if (enemyAircraft instanceof ElitePlusEnemy) {
-                            // 超级精英敌机坠毁，随机掉落<=1个道具
+                            // 精英敌机坠毁，按权重掉落道具：血/火/炸弹各25%，超级火力15%，10%不掉落
                             double r = Math.random();
                             int propX = enemyAircraft.getLocationX();
                             int propY = enemyAircraft.getLocationY();
@@ -397,8 +388,34 @@ public class Game extends JPanel {
                             } else if (r < 0.75) {
                                 // 50% - 75%: 使用炸弹道具工厂创建炸弹道具
                                 props.add(bombPropFactory.createProp(propX, propY, propSpeedX, propSpeedY));
+                            } else if (r < 0.9) {
+                                // 75% - 90%: 使用超级火力道具工厂创建超级火力道具
+                                props.add(superFirePropFactory.createProp(propX, propY, propSpeedX, propSpeedY));
                             } else {
-                                // 75% - 100%: 不掉落
+                                // 90% - 100%: 不掉落
+                            }
+                        } else if (enemyAircraft instanceof ElitePlusEnemy) {
+                            // 超级精英敌机坠毁，随机掉落<=1个道具，增加超级火力道具掉落概率
+                            double r = Math.random();
+                            int propX = enemyAircraft.getLocationX();
+                            int propY = enemyAircraft.getLocationY();
+                            int propSpeedX = 0;
+                            int propSpeedY = 5;
+
+                            if (r < 0.2) {
+                                // 0% - 20%: 使用加血道具工厂创建加血道具
+                                props.add(bloodPropFactory.createProp(propX, propY, propSpeedX, propSpeedY));
+                            } else if (r < 0.4) {
+                                // 20% - 40%: 使用火力道具工厂创建火力道具
+                                props.add(firePropFactory.createProp(propX, propY, propSpeedX, propSpeedY));
+                            } else if (r < 0.6) {
+                                // 40% - 60%: 使用炸弹道具工厂创建炸弹道具
+                                props.add(bombPropFactory.createProp(propX, propY, propSpeedX, propSpeedY));
+                            } else if (r < 0.85) {
+                                // 60% - 85%: 使用超级火力道具工厂创建超级火力道具
+                                props.add(superFirePropFactory.createProp(propX, propY, propSpeedX, propSpeedY));
+                            } else {
+                                // 85% - 100%: 不掉落
                             }
                         } else if (enemyAircraft instanceof BossEnemy) {
                             // Boss敌机坠毁，随机掉落<=3个道具，获得更多分数
@@ -417,18 +434,22 @@ public class Game extends JPanel {
                                 double r = Math.random();
                                 int offsetX = (i - 1) * 20; // 道具横向分散
 
-                                if (r < 0.33) {
-                                    // 33%概率掉落加血道具
+                                if (r < 0.25) {
+                                    // 25%概率掉落加血道具
                                     props.add(bloodPropFactory.createProp(propX + offsetX, propY, propSpeedX,
                                             propSpeedY));
-                                } else if (r < 0.66) {
-                                    // 33%概率掉落火力道具
+                                } else if (r < 0.5) {
+                                    // 25%概率掉落火力道具
                                     props.add(
                                             firePropFactory.createProp(propX + offsetX, propY, propSpeedX, propSpeedY));
-                                } else {
-                                    // 33%概率掉落炸弹道具
+                                } else if (r < 0.75) {
+                                    // 25%概率掉落炸弹道具
                                     props.add(
                                             bombPropFactory.createProp(propX + offsetX, propY, propSpeedX, propSpeedY));
+                                } else {
+                                    // 25%概率掉落超级火力道具
+                                    props.add(superFirePropFactory.createProp(propX + offsetX, propY, propSpeedX,
+                                            propSpeedY));
                                 }
                             }
 
@@ -529,6 +550,21 @@ public class Game extends JPanel {
         g.drawString("SCORE:" + this.score, x, y);
         y = y + 20;
         g.drawString("LIFE:" + this.heroAircraft.getHp(), x, y);
+    }
+
+    /**
+     * 处理游戏结束逻辑
+     * 记录得分并显示排行榜
+     */
+    private void handleGameOver() {
+        // 获取玩家姓名（这里使用默认玩家名，实际项目中可以从输入获取）
+        String playerName = "Player";
+
+        // 记录当前得分
+        scoreService.recordScore(playerName, score);
+
+        // 显示排行榜
+        scoreService.printLeaderboard();
     }
 
 }
