@@ -16,12 +16,15 @@ import javax.swing.JPanel;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 import edu.hitsz.aircraft.AbstractAircraft;
+import edu.hitsz.aircraft.BossEnemyFactory;
 import edu.hitsz.aircraft.EliteEnemy;
 import edu.hitsz.aircraft.EliteEnemyFactory;
 import edu.hitsz.aircraft.EnemyFactory;
 import edu.hitsz.aircraft.HeroAircraft;
-import edu.hitsz.aircraft.MobEnemy;
 import edu.hitsz.aircraft.MobEnemyFactory;
+import edu.hitsz.aircraft.SuperEliteEnemy;
+import edu.hitsz.aircraft.SuperEliteEnemyFactory;
+import edu.hitsz.aircraft.BossEnemy;
 import edu.hitsz.basic.AbstractFlyingObject;
 import edu.hitsz.bullet.BaseBullet;
 import edu.hitsz.prop.BaseProp;
@@ -64,6 +67,8 @@ public class Game extends JPanel {
      */
     EnemyFactory mobEnemyFactory;
     EnemyFactory eliteEnemyFactory;
+    EnemyFactory superEliteEnemyFactory;
+    EnemyFactory bossEnemyFactory;
 
     /**
      * 创建道具的工厂类
@@ -72,10 +77,23 @@ public class Game extends JPanel {
     PropFactory bombPropFactory;
     PropFactory bulletPropFactory;
     /**
-     * 敌机常量设置
+     * 敌机类型，用于逻辑判断
      */
-    private final int MOD_ENEMY = 0;
-    private final int SUPER_ENEMY = 1;
+
+    /**
+     * Boss敌机出现的分数阈值
+     */
+    private final int BOSS_SCORE_THRESHOLD = 200;
+
+    /**
+     * 超级精英敌机出现的周期(ms)
+     */
+    private final int SUPER_ELITE_CYCLE = 4000;
+
+    /**
+     * 超级精英敌机周期计时器
+     */
+    private int superEliteCycleTime = 0;
 
     /**
      * 道具常量设置
@@ -132,6 +150,8 @@ public class Game extends JPanel {
         // 提前加载对应的敌机工厂和敌机list
         mobEnemyFactory = new MobEnemyFactory();
         eliteEnemyFactory = new EliteEnemyFactory();
+        superEliteEnemyFactory = new SuperEliteEnemyFactory();
+        bossEnemyFactory = new BossEnemyFactory();
 
         // 提前加载对应的道具工厂
         bloodPropFactory = new BloodPropFactory();
@@ -166,15 +186,22 @@ public class Game extends JPanel {
         Runnable task = () -> {
 
             time += timeInterval;
+            superEliteCycleTime += timeInterval;
 
             // 周期性执行（控制频率）
             if (timeCountAndNewCycleJudge()) {
-                System.out.println(time);
+                System.out.println("时间: " + time);
                 // 新敌机产生
 
                 if (enemyAircrafts.size() < enemyMaxNumber) {
-                    // TODO1.使用随机数来选择生成精英敌机or普通敌机
-                    generateEnemyAircraftsByRandom();
+                    // 检查是否满足Boss敌机出现条件
+                    checkBossSpawn();
+
+                    // 检查是否满足超级精英敌机出现条件
+                    checkSuperEliteSpawn();
+
+                    // 生成普通敌机或精英敌机
+                    generateCommonEnemies();
                 }
                 // 飞机射出子弹
                 shootAction();
@@ -203,7 +230,12 @@ public class Game extends JPanel {
                 // 游戏结束
                 executorService.shutdown();
                 gameOverFlag = true;
-                System.out.println("Game Over!");
+                System.out.println("Game Over! 最终得分: " + score);
+
+                // 输出游戏结束状态
+                if (gameOverFlag) {
+                    System.out.println("游戏状态: 已结束");
+                }
             }
 
         };
@@ -227,16 +259,54 @@ public class Game extends JPanel {
     }
 
     /**
-     * 添加敌机，随机普通or精英敌机
-     * 
-     * @param enemyAircrafts2
+     * 检查是否满足Boss敌机出现条件
+     * 分数达到设定阈值时，可多次出现
      */
-    private void generateEnemyAircraftsByRandom() {
-        int randomChoice = random.nextInt(SUPER_ENEMY + 1); // 从[0,1]之间选择一个
-        if (randomChoice == MOD_ENEMY) {
-            enemyAircrafts.add(mobEnemyFactory.createEnemy());
-        } else if (randomChoice == SUPER_ENEMY) {
-            enemyAircrafts.add(eliteEnemyFactory.createEnemy());
+    private void checkBossSpawn() {
+        // 检查是否满足Boss出现的条件
+        boolean bossFlag = score > 0 && score % BOSS_SCORE_THRESHOLD == 0;
+
+        if (bossFlag) {
+            // 分数达到阈值，生成Boss敌机
+            System.out.println("Boss敌机出现！分数: " + score);
+            enemyAircrafts.add(bossEnemyFactory.createEnemy());
+        }
+    }
+
+    /**
+     * 检查是否满足超级精英敌机出现条件
+     * 每隔一定周期随机产生
+     */
+    private void checkSuperEliteSpawn() {
+        // 检查是否达到超级精英敌机出现的周期
+        if (superEliteCycleTime >= SUPER_ELITE_CYCLE) {
+            // 重置周期计时器
+            superEliteCycleTime = 0;
+
+            // 随机决定是否生成超级精英敌机（50%概率）
+            if (random.nextDouble() < 0.5) {
+                System.out.println("超级精英敌机出现！时间: " + time);
+                enemyAircrafts.add(superEliteEnemyFactory.createEnemy());
+            }
+        }
+    }
+
+    /**
+     * 生成普通敌机和精英敌机
+     */
+    private void generateCommonEnemies() {
+        // 随机生成普通敌机或精英敌机
+        int randomChoice = random.nextInt(2); // 0, 1
+        switch (randomChoice) {
+            case 0: // MOB_ENEMY
+                enemyAircrafts.add(mobEnemyFactory.createEnemy());
+                break;
+            case 1: // ELITE_ENEMY
+                enemyAircrafts.add(eliteEnemyFactory.createEnemy());
+                break;
+            default:
+                enemyAircrafts.add(mobEnemyFactory.createEnemy());
+                break;
         }
     }
 
@@ -254,8 +324,10 @@ public class Game extends JPanel {
     private void shootAction() {
         // 敌机射击
         for (AbstractAircraft enemyAircraft : enemyAircrafts) {
-            if (enemyAircraft instanceof EliteEnemy) {
-                // 如果是精英敌机的话，将敌机子弹添加
+            // 只有精英敌机、超级精英敌机和Boss敌机才能射击
+            if (enemyAircraft instanceof EliteEnemy || enemyAircraft instanceof SuperEliteEnemy ||
+                    enemyAircraft instanceof BossEnemy) {
+                // 添加敌机射出的子弹
                 enemyBullets.addAll(enemyAircraft.shoot());
             }
         }
@@ -344,49 +416,61 @@ public class Game extends JPanel {
     }
 
     /**
-     * 击败精英战机随机生成道具
+     * 击败敌机后随机生成道具
      * 
-     * @param enemyAircraft
+     * @param enemyAircraft 被击败的敌机
      */
     private void generatePropByRandom(AbstractAircraft enemyAircraft) {
-        // 1.检查战机是不是精英战机
-        if (enemyAircraft instanceof EliteEnemy) {
-            // 2.随机生成奖励
-            int randomChoice = random.nextInt(0, 3);
-            BaseProp prop;
+        // 检查战机类型并决定是否生成道具
+        if (enemyAircraft instanceof EliteEnemy ||
+                enemyAircraft instanceof SuperEliteEnemy ||
+                enemyAircraft instanceof BossEnemy) {
 
-            // 使用工厂模式生成道具
-            switch (randomChoice) {
-                case BLOOD_PROP:
-                    prop = bloodPropFactory.createProp(enemyAircraft.getLocationX(),
-                            enemyAircraft.getLocationY(),
-                            0,
-                            enemyAircraft.getSpeedY());
-                    break;
-                case BOMB_PROP:
-                    prop = bombPropFactory.createProp(enemyAircraft.getLocationX(),
-                            enemyAircraft.getLocationY(),
-                            0,
-                            enemyAircraft.getSpeedY());
-                    break;
-                case BULLET_PROP:
-                    prop = bulletPropFactory.createProp(enemyAircraft.getLocationX(),
-                            enemyAircraft.getLocationY(),
-                            0,
-                            enemyAircraft.getSpeedY());
-                    break;
-                default:
-                    prop = bloodPropFactory.createProp(enemyAircraft.getLocationX(),
-                            enemyAircraft.getLocationY(),
-                            0,
-                            enemyAircraft.getSpeedY());
-                    break;
+            // 确定要生成的道具数量
+            int propCount = 0;
+
+            if (enemyAircraft instanceof BossEnemy) {
+                // Boss 敌机掉落最多3个道具
+                propCount = random.nextInt(3) + 1; // 1-3个
+                System.out.println("Boss被击败，掉落" + propCount + "个道具");
+            } else if (enemyAircraft instanceof SuperEliteEnemy) {
+                // 超级精英敌机掉落最多1个道具，概率更高
+                propCount = random.nextDouble() < 0.8 ? 1 : 0; // 80%概率掉落1个
+            } else if (enemyAircraft instanceof EliteEnemy) {
+                // 普通精英敌机掉落最多1个道具
+                propCount = random.nextDouble() < 0.5 ? 1 : 0; // 50%概率掉落1个
             }
 
-            // 道具列表添加
-            props.add(prop);
-        }
+            // 生成道具
+            for (int i = 0; i < propCount; i++) {
+                // 随机选择道具类型
+                int randomChoice = random.nextInt(3);
+                BaseProp prop;
 
+                // 计算道具掉落的位置（如果有多个道具，稍微错开位置）
+                int propX = enemyAircraft.getLocationX() + (i - propCount / 2) * 20;
+                int propY = enemyAircraft.getLocationY() + i * 10;
+
+                // 使用工厂模式生成道具
+                switch (randomChoice) {
+                    case BLOOD_PROP:
+                        prop = bloodPropFactory.createProp(propX, propY, 0, enemyAircraft.getSpeedY());
+                        break;
+                    case BOMB_PROP:
+                        prop = bombPropFactory.createProp(propX, propY, 0, enemyAircraft.getSpeedY());
+                        break;
+                    case BULLET_PROP:
+                        prop = bulletPropFactory.createProp(propX, propY, 0, enemyAircraft.getSpeedY());
+                        break;
+                    default:
+                        prop = bloodPropFactory.createProp(propX, propY, 0, enemyAircraft.getSpeedY());
+                        break;
+                }
+
+                // 道具列表添加
+                props.add(prop);
+            }
+        }
     }
 
     /**

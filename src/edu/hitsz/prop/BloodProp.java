@@ -11,7 +11,7 @@ public class BloodProp extends BaseProp {
   public BloodProp(int locationX, int locationY, int speedX, int speedY) {
     super(locationX, locationY, speedX, speedY);
     Random random = new Random();
-    hpReward = random.nextInt(1, 4) * 10; // 随机生成生命值奖励
+    hpReward = (random.nextInt(4) + 1) * 10; // 随机生成生命值奖励
   }
 
   // 重写active方法
