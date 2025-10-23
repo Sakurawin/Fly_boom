@@ -1,7 +1,7 @@
 package edu.hitsz.aircraft;
 
 import edu.hitsz.bullet.BaseBullet;
-import edu.hitsz.bullet.HeroBullet;
+import edu.hitsz.strategy.StraightShootStrategy;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -42,6 +42,8 @@ public class HeroAircraft extends AbstractAircraft {
      */
     private HeroAircraft(int locationX, int locationY, int speedX, int speedY, int hp) {
         super(locationX, locationY, speedX, speedY, hp);
+        // 英雄机默认使用直射策略
+        this.shootStrategy = new StraightShootStrategy(shootNum);
     }
 
     /**
@@ -78,19 +80,12 @@ public class HeroAircraft extends AbstractAircraft {
      * @return 射击出的子弹List
      */
     public List<BaseBullet> shoot() {
-        List<BaseBullet> res = new LinkedList<>();
-        int x = this.getLocationX();
-        int y = this.getLocationY() + direction * 2;
-        int speedX = 0;
-        int speedY = this.getSpeedY() + direction * 5;
-        BaseBullet bullet;
-        for (int i = 0; i < shootNum; i++) {
-            // 子弹发射位置相对飞机位置向前偏移
-            // 多个子弹横向分散
-            bullet = new HeroBullet(x + (i * 2 - shootNum + 1) * 10, y, speedX, speedY, power);
-            res.add(bullet);
+        if (shootStrategy != null) {
+            return shootStrategy.shoot(this.getLocationX(), this.getLocationY(), 
+                                     0, this.getSpeedY(), 
+                                     power, direction, true);
         }
-        return res;
+        return new LinkedList<>();
     }
 
     public void increaseHp(int hp) {
@@ -99,7 +94,42 @@ public class HeroAircraft extends AbstractAircraft {
         } else {
             this.hp += hp;
         }
-
+    }
+    
+    /**
+     * 获取子弹威力
+     * @return 子弹威力
+     */
+    public int getPower() {
+        return power;
+    }
+    
+    /**
+     * 获取射击方向
+     * @return 射击方向
+     */
+    public int getDirection() {
+        return direction;
+    }
+    
+    /**
+     * 获取子弹发射数量
+     * @return 子弹发射数量
+     */
+    public int getShootNum() {
+        return shootNum;
+    }
+    
+    /**
+     * 设置子弹发射数量
+     * @param shootNum 子弹发射数量
+     */
+    public void setShootNum(int shootNum) {
+        this.shootNum = shootNum;
+        // 当shootNum改变时，更新直射策略
+        if (shootStrategy instanceof StraightShootStrategy) {
+            this.shootStrategy = new StraightShootStrategy(shootNum);
+        }
     }
 
 }

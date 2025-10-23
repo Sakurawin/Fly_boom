@@ -2,7 +2,7 @@ package edu.hitsz.aircraft;
 
 import edu.hitsz.application.Main;
 import edu.hitsz.bullet.BaseBullet;
-import edu.hitsz.bullet.EnemyBullet;
+import edu.hitsz.strategy.CircularShootStrategy;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -35,6 +35,8 @@ public class BossEnemy extends AbstractAircraft {
 
     public BossEnemy(int locationX, int locationY, int speedX, int speedY, int hp) {
         super(locationX, locationY, speedX, speedY, hp);
+        // Boss敌机使用环射策略
+        this.shootStrategy = new CircularShootStrategy(shootNum, bulletSpeed);
     }
 
     @Override
@@ -63,21 +65,12 @@ public class BossEnemy extends AbstractAircraft {
      * @return 射击出的子弹List
      */
     public List<BaseBullet> shoot() {
-        List<BaseBullet> res = new LinkedList<>();
-        int x = this.getLocationX();
-        int y = this.getLocationY();
-
-        BaseBullet bullet;
-        for (int i = 0; i < shootNum; i++) {
-            // 计算环形发射角度，每颗子弹间隔18度（360/20）
-            double angle = Math.toRadians(i * 18);
-            int speedX = (int) (bulletSpeed * Math.cos(angle));
-            int speedY = (int) (bulletSpeed * Math.sin(angle));
-
-            bullet = new EnemyBullet(x, y, speedX, speedY, power);
-            res.add(bullet);
+        if (shootStrategy != null) {
+            return shootStrategy.shoot(this.getLocationX(), this.getLocationY(), 
+                                     0, this.getSpeedY(), 
+                                     power, 1, false);
         }
-        return res;
+        return new LinkedList<>();
     }
 
     /**

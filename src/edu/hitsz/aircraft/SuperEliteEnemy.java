@@ -2,7 +2,7 @@ package edu.hitsz.aircraft;
 
 import edu.hitsz.application.Main;
 import edu.hitsz.bullet.BaseBullet;
-import edu.hitsz.bullet.EnemyBullet;
+import edu.hitsz.strategy.ScatterShootStrategy;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -38,6 +38,8 @@ public class SuperEliteEnemy extends EliteEnemy {
 
     public SuperEliteEnemy(int locationX, int locationY, int speedX, int speedY, int hp) {
         super(locationX, locationY, speedX, speedY, hp);
+        // 超级精英敌机使用散射策略
+        this.shootStrategy = new ScatterShootStrategy(shootNum, spreadAngle);
     }
 
     @Override
@@ -57,22 +59,11 @@ public class SuperEliteEnemy extends EliteEnemy {
      * @return 射击出的子弹List
      */
     public List<BaseBullet> shoot() {
-        List<BaseBullet> res = new LinkedList<>();
-        int x = this.getLocationX();
-        int y = this.getLocationY() + direction * 2;
-        int baseSpeedX = 0;
-        int baseSpeedY = this.getSpeedY() + direction * 5;
-
-        BaseBullet bullet;
-        for (int i = 0; i < shootNum; i++) {
-            // 计算散射角度，中间一颗直射，两边各一颗斜射
-            double angle = Math.toRadians((i - 1) * spreadAngle); // -30°, 0°, 30°
-            int speedX = (int) (baseSpeedX + baseSpeedY * Math.sin(angle));
-            int speedY = (int) (baseSpeedY * Math.cos(angle));
-
-            bullet = new EnemyBullet(x, y, speedX, speedY, power);
-            res.add(bullet);
+        if (shootStrategy != null) {
+            return shootStrategy.shoot(this.getLocationX(), this.getLocationY(), 
+                                     0, this.getSpeedY(), 
+                                     power, direction, false);
         }
-        return res;
+        return new LinkedList<>();
     }
 }

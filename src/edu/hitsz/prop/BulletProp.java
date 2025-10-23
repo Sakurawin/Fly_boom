@@ -1,6 +1,7 @@
 package edu.hitsz.prop;
 
 import edu.hitsz.aircraft.HeroAircraft;
+import edu.hitsz.strategy.ScatterShootStrategy;
 
 public class BulletProp extends BaseProp {
 
@@ -11,7 +12,8 @@ public class BulletProp extends BaseProp {
   // 重写active方法
   @Override
   public void active(HeroAircraft heroAircraft) {
-    // TODO添加子弹生效逻辑
+    // 设置英雄机为散射策略，发射3颗子弹，散射角度30度
+    heroAircraft.setShootStrategy(new ScatterShootStrategy(3, 30));
     System.out.println("FireSupply active!");
   }
 }

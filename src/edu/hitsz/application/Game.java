@@ -32,6 +32,7 @@ import edu.hitsz.prop.PropFactory;
 import edu.hitsz.prop.BloodPropFactory;
 import edu.hitsz.prop.BombPropFactory;
 import edu.hitsz.prop.BulletPropFactory;
+import edu.hitsz.prop.SuperBulletPropFactory;
 
 /**
  * 游戏主面板，游戏启动
@@ -76,6 +77,7 @@ public class Game extends JPanel {
     PropFactory bloodPropFactory;
     PropFactory bombPropFactory;
     PropFactory bulletPropFactory;
+    PropFactory superBulletPropFactory;
     /**
      * 敌机类型，用于逻辑判断
      */
@@ -101,6 +103,7 @@ public class Game extends JPanel {
     private final int BLOOD_PROP = 0;
     private final int BOMB_PROP = 1;
     private final int BULLET_PROP = 2;
+    private final int SUPER_BULLET_PROP = 3;
 
     /**
      * Random变量，静态初始化后面直接取用
@@ -157,6 +160,7 @@ public class Game extends JPanel {
         bloodPropFactory = new BloodPropFactory();
         bombPropFactory = new BombPropFactory();
         bulletPropFactory = new BulletPropFactory();
+        superBulletPropFactory = new SuperBulletPropFactory();
 
         enemyAircrafts = new LinkedList<>();
         heroBullets = new LinkedList<>();
@@ -444,7 +448,7 @@ public class Game extends JPanel {
             // 生成道具
             for (int i = 0; i < propCount; i++) {
                 // 随机选择道具类型
-                int randomChoice = random.nextInt(3);
+                int randomChoice = random.nextInt(4);
                 BaseProp prop;
 
                 // 计算道具掉落的位置（如果有多个道具，稍微错开位置）
@@ -461,6 +465,9 @@ public class Game extends JPanel {
                         break;
                     case BULLET_PROP:
                         prop = bulletPropFactory.createProp(propX, propY, 0, enemyAircraft.getSpeedY());
+                        break;
+                    case SUPER_BULLET_PROP:
+                        prop = superBulletPropFactory.createProp(propX, propY, 0, enemyAircraft.getSpeedY());
                         break;
                     default:
                         prop = bloodPropFactory.createProp(propX, propY, 0, enemyAircraft.getSpeedY());
