@@ -142,6 +142,23 @@ public class ScoreService {
     }
     
     /**
+     * 获取所有成绩记录（按分数降序排列）
+     * @return 所有成绩记录列表
+     */
+    public List<GameScore> getAllScores() {
+        return scoreDao.getTopScores(Integer.MAX_VALUE);
+    }
+    
+    /**
+     * 删除指定玩家的所有记录
+     * @param playerName 玩家名称
+     * @return 删除是否成功
+     */
+    public boolean deletePlayerRecords(String playerName) {
+        return scoreDao.deletePlayerRecords(playerName);
+    }
+    
+    /**
      * 清空所有成绩记录
      * @return 清空是否成功
      */

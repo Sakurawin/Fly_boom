@@ -64,8 +64,32 @@ public class HeroAircraft extends AbstractAircraft {
                     instance = new HeroAircraft(locationX, locationY, speedX, speedY, hp);
                 }
             }
+        } else {
+            // 如果实例已存在，重置状态以开始新游戏
+            instance.resetForNewGame(locationX, locationY, speedX, speedY, hp);
         }
         return instance;
+    }
+    
+    /**
+     * 重置英雄机状态，用于开始新游戏
+     */
+    private void resetForNewGame(int locationX, int locationY, int speedX, int speedY, int hp) {
+        this.locationX = locationX;
+        this.locationY = locationY;
+        this.speedX = speedX;
+        this.speedY = speedY;
+        this.hp = hp;
+        this.maxHp = hp;
+        this.isValid = true;
+        
+        // 重置射击参数
+        this.shootNum = 1;
+        this.power = 30;
+        this.direction = -1;
+        
+        // 重置射击策略为默认直射
+        this.shootStrategy = new StraightShootStrategy(shootNum);
     }
 
     @Override

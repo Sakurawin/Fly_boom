@@ -34,6 +34,8 @@ import edu.hitsz.prop.BombPropFactory;
 import edu.hitsz.prop.BulletPropFactory;
 import edu.hitsz.prop.SuperBulletPropFactory;
 import edu.hitsz.service.ScoreService;
+import edu.hitsz.gui.DifficultySelectionFrame;
+import edu.hitsz.audio.AudioManager;
 
 /**
  * 游戏主面板，游戏启动
@@ -146,6 +148,16 @@ public class Game extends JPanel {
      * 游戏开始时间（毫秒）
      */
     private long gameStartTime;
+    
+    /**
+     * 游戏难度
+     */
+    private DifficultySelectionFrame.Difficulty difficulty;
+    
+    /**
+     * 游戏结束回调
+     */
+    private Runnable gameOverCallback;
 
     /**
      * 静态加载，多次复用
@@ -155,7 +167,29 @@ public class Game extends JPanel {
     }
 
     public Game() {
-        // 使用单例模式重构英雄机
+        this(null, true, null);
+    }
+    
+    public Game(DifficultySelectionFrame.Difficulty difficulty, Runnable gameOverCallback) {
+        this(difficulty, true, gameOverCallback);
+    }
+    
+    public Game(DifficultySelectionFrame.Difficulty difficulty, boolean musicEnabled, Runnable gameOverCallback) {
+        this.difficulty = difficulty;
+        this.gameOverCallback = gameOverCallback;
+        
+        // Set background image based on difficulty
+        if (difficulty != null) {
+            ImageManager.setBackgroundByDifficulty(difficulty);
+        }
+        
+        // Initialize audio manager
+        if (musicEnabled) {
+            // Start background music when game starts
+            // This will be called after game.action() is invoked
+        }
+        
+        // Use singleton pattern to refactor hero aircraft
         heroAircraft = HeroAircraft.getInstance(
                 Main.WINDOW_WIDTH / 2,
                 Main.WINDOW_HEIGHT - ImageManager.HERO_IMAGE.getHeight(),
@@ -202,6 +236,12 @@ public class Game extends JPanel {
      * 游戏启动入口，执行游戏逻辑
      */
     public void action() {
+        
+        // Start background music if enabled
+        AudioManager audioManager = AudioManager.getInstance();
+        if (audioManager.isMusicEnabled()) {
+            audioManager.playBackgroundMusic(AudioManager.BGM_GAME);
+        }
 
         // 定时任务：绘制、对象产生、碰撞判定、击毁及结束判定
         Runnable task = () -> {
@@ -253,11 +293,19 @@ public class Game extends JPanel {
                 gameOverFlag = true;
                 System.out.println("Game Over! 最终得分: " + score);
                 
-                // 保存游戏成绩
-                saveGameScore();
+                // Stop background music and play game over sound
+                AudioManager gameOverAudioManager = AudioManager.getInstance();
+                gameOverAudioManager.stopBackgroundMusic();
+                gameOverAudioManager.playSound(AudioManager.SOUND_GAME_OVER);
                 
-                // 打印历史成绩
-                printGameHistory();
+                // 如果有游戏结束回调，调用它（用于显示GUI界面）
+                if (gameOverCallback != null) {
+                    gameOverCallback.run();
+                } else {
+                    // 传统方式：保存成绩并打印到控制台
+                    saveGameScore();
+                    printGameHistory();
+                }
 
                 // 输出游戏结束状态
                 if (gameOverFlag) {
@@ -604,6 +652,23 @@ public class Game extends JPanel {
         
         // 打印成绩统计
         scoreService.printScoreStatistics();
+    }
+    
+    /**
+     * 获取最终得分
+     * @return 最终得分
+     */
+    public int getFinalScore() {
+        return score;
+    }
+    
+    /**
+     * 获取游戏持续时间（秒）
+     * @return 游戏持续时间
+     */
+    public int getGameDuration() {
+        long currentTime = System.currentTimeMillis();
+        return (int) ((currentTime - gameStartTime) / 1000);
     }
 
 }

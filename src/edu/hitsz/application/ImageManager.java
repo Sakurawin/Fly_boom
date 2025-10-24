@@ -19,6 +19,7 @@ import edu.hitsz.prop.BloodProp;
 import edu.hitsz.prop.BombProp;
 import edu.hitsz.prop.BulletProp;
 import edu.hitsz.prop.SuperBulletProp;
+import edu.hitsz.gui.DifficultySelectionFrame;
 
 /**
  * 综合管理图片的加载，访问
@@ -50,7 +51,7 @@ public class ImageManager {
 
     static {
         try {
-
+            // 默认使用简易难度背景
             BACKGROUND_IMAGE = ImageIO.read(new FileInputStream("src/images/bg.jpg"));
 
             HERO_IMAGE = ImageIO.read(new FileInputStream("src/images/hero.png"));
@@ -82,6 +83,35 @@ public class ImageManager {
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(-1);
+        }
+    }
+    
+    /**
+     * 根据游戏难度设置背景图片
+     * @param difficulty 游戏难度
+     */
+    public static void setBackgroundByDifficulty(DifficultySelectionFrame.Difficulty difficulty) {
+        try {
+            String backgroundFile;
+            switch (difficulty) {
+                case EASY:
+                    backgroundFile = "src/images/bg.jpg";
+                    break;
+                case NORMAL:
+                    backgroundFile = "src/images/bg3.jpg";
+                    break;
+                case HARD:
+                    backgroundFile = "src/images/bg5.jpg";
+                    break;
+                default:
+                    backgroundFile = "src/images/bg.jpg";
+                    break;
+            }
+            BACKGROUND_IMAGE = ImageIO.read(new FileInputStream(backgroundFile));
+            System.out.println("Background set for difficulty: " + difficulty.getName() + " - " + backgroundFile);
+        } catch (IOException e) {
+            System.err.println("Error loading background image for difficulty: " + difficulty);
+            e.printStackTrace();
         }
     }
 

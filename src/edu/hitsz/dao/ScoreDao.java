@@ -46,6 +46,13 @@ public interface ScoreDao {
     List<GameScore> getScoresByPlayer(String playerName);
     
     /**
+     * 删除指定玩家的所有成绩记录
+     * @param playerName 玩家名称
+     * @return 删除是否成功
+     */
+    boolean deletePlayerRecords(String playerName);
+    
+    /**
      * 清空所有成绩记录
      * @return 清空是否成功
      */

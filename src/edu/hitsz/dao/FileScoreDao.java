@@ -113,6 +113,34 @@ public class FileScoreDao implements ScoreDao {
         }
     }
     
+    @Override
+    public boolean deletePlayerRecords(String playerName) {
+        try {
+            List<GameScore> allScores = getAllScores();
+            // 过滤掉指定玩家的记录
+            List<GameScore> filteredScores = allScores.stream()
+                .filter(score -> !score.getPlayerName().equals(playerName))
+                .collect(Collectors.toList());
+            
+            // 重写文件
+            try (PrintWriter writer = new PrintWriter(new FileWriter(SCORE_FILE))) {
+                writer.println("Score,PlayerName,Duration,GameTime");
+                for (GameScore score : filteredScores) {
+                    String line = String.format("%d%s%s%s%d%s%s",
+                        score.getScore(), DELIMITER,
+                        score.getPlayerName(), DELIMITER,
+                        score.getDuration(), DELIMITER,
+                        score.getGameTime().format(DATE_FORMATTER));
+                    writer.println(line);
+                }
+            }
+            return true;
+        } catch (IOException e) {
+            System.err.println("Error deleting player records: " + e.getMessage());
+            return false;
+        }
+    }
+    
     /**
      * 解析CSV行为GameScore对象
      * @param line CSV行
