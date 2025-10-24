@@ -33,6 +33,7 @@ import edu.hitsz.prop.BloodPropFactory;
 import edu.hitsz.prop.BombPropFactory;
 import edu.hitsz.prop.BulletPropFactory;
 import edu.hitsz.prop.SuperBulletPropFactory;
+import edu.hitsz.service.ScoreService;
 
 /**
  * 游戏主面板，游戏启动
@@ -135,6 +136,16 @@ public class Game extends JPanel {
      * 游戏结束标志
      */
     private boolean gameOverFlag = false;
+    
+    /**
+     * 成绩服务
+     */
+    private ScoreService scoreService;
+    
+    /**
+     * 游戏开始时间（毫秒）
+     */
+    private long gameStartTime;
 
     /**
      * 静态加载，多次复用
@@ -161,6 +172,9 @@ public class Game extends JPanel {
         bombPropFactory = new BombPropFactory();
         bulletPropFactory = new BulletPropFactory();
         superBulletPropFactory = new SuperBulletPropFactory();
+        
+        // 初始化成绩服务
+        scoreService = new ScoreService();
 
         enemyAircrafts = new LinkedList<>();
         heroBullets = new LinkedList<>();
@@ -178,6 +192,9 @@ public class Game extends JPanel {
 
         // 启动英雄机鼠标监听
         new HeroController(this, heroAircraft);
+        
+        // 记录游戏开始时间
+        gameStartTime = System.currentTimeMillis();
 
     }
 
@@ -235,6 +252,12 @@ public class Game extends JPanel {
                 executorService.shutdown();
                 gameOverFlag = true;
                 System.out.println("Game Over! 最终得分: " + score);
+                
+                // 保存游戏成绩
+                saveGameScore();
+                
+                // 打印历史成绩
+                printGameHistory();
 
                 // 输出游戏结束状态
                 if (gameOverFlag) {
@@ -556,6 +579,31 @@ public class Game extends JPanel {
         g.drawString("SCORE:" + this.score, x, y);
         y = y + 20;
         g.drawString("LIFE:" + this.heroAircraft.getHp(), x, y);
+    }
+    
+    /**
+     * 保存游戏成绩
+     */
+    private void saveGameScore() {
+        // 计算游戏持续时间（秒）
+        long gameDuration = (System.currentTimeMillis() - gameStartTime) / 1000;
+        
+        // 使用默认玩家名称
+        String playerName = "Player";
+        
+        // 保存成绩
+        scoreService.saveGameScore(score, playerName, (int) gameDuration);
+    }
+    
+    /**
+     * 打印游戏历史成绩
+     */
+    private void printGameHistory() {
+        // 打印前10名高分记录
+        scoreService.printTopScores(10);
+        
+        // 打印成绩统计
+        scoreService.printScoreStatistics();
     }
 
 }

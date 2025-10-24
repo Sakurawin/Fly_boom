@@ -1,0 +1,81 @@
+@startuml
+!theme plain
+title 射击策略模式类图
+
+interface ShootStrategy {
+    + shoot(int locationX, int locationY, int speedX, int speedY, int power, int direction, boolean isHero): List<BaseBullet>
+}
+
+class StraightShootStrategy {
+    - shootNum: int
+    + StraightShootStrategy(int shootNum)
+    + shoot(int locationX, int locationY, int speedX, int speedY, int power, int direction, boolean isHero): List<BaseBullet>
+}
+
+class ScatterShootStrategy {
+    - shootNum: int
+    - spreadAngle: int
+    + ScatterShootStrategy(int shootNum, int spreadAngle)
+    + shoot(int locationX, int locationY, int speedX, int speedY, int power, int direction, boolean isHero): List<BaseBullet>
+}
+
+class CircularShootStrategy {
+    - shootNum: int
+    - bulletSpeed: int
+    + CircularShootStrategy(int shootNum, int bulletSpeed)
+    + shoot(int locationX, int locationY, int speedX, int speedY, int power, int direction, boolean isHero): List<BaseBullet>
+}
+
+abstract class AbstractAircraft {
+    # shootStrategy: ShootStrategy
+    + setShootStrategy(ShootStrategy shootStrategy): void
+    + getShootStrategy(): ShootStrategy
+    + {abstract} shoot(): List<BaseBullet>
+}
+
+class HeroAircraft {
+    - shootNum: int
+    - power: int
+    - direction: int
+    + shoot(): List<BaseBullet>
+    + setShootStrategy(ShootStrategy shootStrategy): void
+}
+
+class EliteEnemy {
+    - shootNum: int
+    - power: int
+    - direction: int
+    + shoot(): List<BaseBullet>
+}
+
+class SuperEliteEnemy {
+    - shootNum: int
+    - power: int
+    - spreadAngle: int
+    + shoot(): List<BaseBullet>
+}
+
+class BossEnemy {
+    - shootNum: int
+    - power: int
+    - bulletSpeed: int
+    + shoot(): List<BaseBullet>
+}
+
+ShootStrategy <|.. StraightShootStrategy
+ShootStrategy <|.. ScatterShootStrategy
+ShootStrategy <|.. CircularShootStrategy
+
+AbstractAircraft <|-- HeroAircraft
+AbstractAircraft <|-- EliteEnemy
+EliteEnemy <|-- SuperEliteEnemy
+AbstractAircraft <|-- BossEnemy
+
+AbstractAircraft --> ShootStrategy : 使用
+
+note right of ShootStrategy : 策略接口\n定义射击行为的抽象方法
+note bottom of StraightShootStrategy : 直射策略\n发射直线子弹
+note bottom of ScatterShootStrategy : 散射策略\n发射扇形分布子弹
+note bottom of CircularShootStrategy : 环射策略\n发射环形分布子弹
+
+@enduml

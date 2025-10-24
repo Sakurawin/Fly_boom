@@ -1,8 +1,183 @@
 # AircraftWar
 
+## 项目概述
+
+飞机大战游戏采用面向对象设计，实现了多种设计模式来提升代码的可维护性和可扩展性。主要包含以下设计模式：
+
+- **单例模式**：英雄飞机的唯一实例管理
+- **工厂模式**：敌机和道具的创建管理
+- **策略模式**：飞机射击行为的动态切换
+- **DAO模式**：游戏成绩的数据持久化
+
+## 新增功能
+
+### 策略模式射击系统
+- **直线射击**：普通单发射击，适用于英雄飞机和普通敌机
+- **散射射击**：多发子弹散射，增强精英敌机火力
+- **环形射击**：360度全方位射击，Boss敌机专用
+- **动态切换**：通过道具可临时改变英雄飞机射击模式
+
+### 成绩持久化系统
+- **数据存储**：CSV格式文件存储游戏成绩
+- **排行榜**：支持按分数排序的排行榜显示
+- **历史记录**：完整的游戏历史记录查询
+- **统计功能**：成绩统计和分析功能
+
+### 超级子弹道具
+- **环形射击道具**：获得后英雄飞机临时获得360度射击能力
+- **时效限制**：道具效果持续一定时间后恢复原始射击模式
+
+## 技术特点
+
+- **Java 8+ 特性**：Stream API、Lambda表达式、LocalDateTime
+- **设计模式应用**：多种设计模式的综合运用
+- **文件I/O处理**：CSV格式的数据持久化机制
+- **异常处理**：完善的异常处理和资源管理
+
 ## 项目类图
 
-### 1. 英雄机单例模式类图
+## 项目类图
+
+### 新增设计模式
+
+#### 4. 策略模式类图
+
+采用策略模式重构飞机射击系统，实现射击行为的动态切换。
+
+```plantuml
+@startuml
+!theme plain
+title 飞机射击策略模式类图
+
+interface ShootStrategy {
+    + {abstract} shoot(int x, int y, int direction, int power): List<BaseBullet>
+}
+
+class StraightShootStrategy {
+    + shoot(int x, int y, int direction, int power): List<BaseBullet>
+}
+
+class ScatterShootStrategy {
+    - shootNum: int
+    + shoot(int x, int y, int direction, int power): List<BaseBullet>
+}
+
+class CircularShootStrategy {
+    - shootNum: int
+    + shoot(int x, int y, int direction, int power): List<BaseBullet>
+}
+
+abstract class AbstractAircraft {
+    # shootStrategy: ShootStrategy
+    + setShootStrategy(ShootStrategy strategy): void
+    + executeShoot(): List<BaseBullet>
+}
+
+class HeroAircraft {
+    + HeroAircraft()
+    + executeShoot(): List<BaseBullet>
+}
+
+class MobEnemy {
+    + MobEnemy()
+    + executeShoot(): List<BaseBullet>
+}
+
+class EliteEnemy {
+    + EliteEnemy()
+    + executeShoot(): List<BaseBullet>
+}
+
+class BossEnemy {
+    + BossEnemy()
+    + executeShoot(): List<BaseBullet>
+}
+
+ShootStrategy <|.. StraightShootStrategy
+ShootStrategy <|.. ScatterShootStrategy
+ShootStrategy <|.. CircularShootStrategy
+
+AbstractAircraft --> ShootStrategy : 使用
+AbstractAircraft <|-- HeroAircraft
+AbstractAircraft <|-- MobEnemy
+AbstractAircraft <|-- EliteEnemy
+AbstractAircraft <|-- BossEnemy
+
+note right of ShootStrategy : 策略接口\n定义射击行为规范
+note bottom of StraightShootStrategy : 直线射击策略\n单发子弹直线射击
+note bottom of ScatterShootStrategy : 散射策略\n多发子弹散射射击
+note bottom of CircularShootStrategy : 环形射击策略\n360度全方位射击
+
+@enduml
+```
+
+#### 5. DAO模式类图
+
+实现数据访问对象模式，提供游戏成绩的持久化功能。
+
+```plantuml
+@startuml
+!theme plain
+title 数据访问对象模式类图
+
+class GameScore {
+    - score: int
+    - gameTime: LocalDateTime
+    - playerName: String
+    - duration: int
+    + GameScore()
+    + getScore(): int
+    + getGameTime(): LocalDateTime
+    + getPlayerName(): String
+    + getDuration(): int
+}
+
+interface ScoreDao {
+    + saveScore(GameScore gameScore): boolean
+    + getAllScores(): List<GameScore>
+    + getTopScores(int limit): List<GameScore>
+    + clearAllScores(): boolean
+}
+
+class FileScoreDao {
+    - SCORE_FILE: String
+    - DELIMITER: String
+    + saveScore(GameScore gameScore): boolean
+    + getAllScores(): List<GameScore>
+    + getTopScores(int limit): List<GameScore>
+    + clearAllScores(): boolean
+}
+
+class ScoreService {
+    - scoreDao: ScoreDao
+    + saveGameScore(int score, String playerName, int duration): boolean
+    + printAllScores(): void
+    + printTopScores(int limit): void
+    + printScoreStatistics(): void
+}
+
+class Game {
+    - scoreService: ScoreService
+    - saveGameScore(): void
+    - printGameHistory(): void
+}
+
+ScoreDao <|.. FileScoreDao
+ScoreService --> ScoreDao : 使用
+ScoreService --> GameScore : 创建和操作
+FileScoreDao --> GameScore : 持久化
+Game --> ScoreService : 使用
+
+note right of ScoreDao : DAO接口\n定义数据访问操作
+note bottom of FileScoreDao : 文件存储实现\n使用CSV格式持久化
+note top of ScoreService : 业务逻辑层\n处理成绩相关操作
+
+@enduml
+```
+
+### 原有设计模式
+
+#### 1. 英雄机单例模式类图
 
 #### Mermaid 类图
 
@@ -127,7 +302,7 @@ note right of HeroAircraft : 单例模式实现\n- 私有构造函数\n- 静态�
 
 ---
 
-### 2. 敌机工厂模式类图
+#### 2. 敌机工厂模式类图
 
 #### Mermaid 类图
 
@@ -271,7 +446,7 @@ note bottom of EliteEnemyFactory : 精英敌机工厂\n负责创建EliteEnemy
 
 ---
 
-### 3. 道具工厂模式类图
+#### 3. 道具工厂模式类图
 
 #### Mermaid 类图
 
