@@ -179,5 +179,4 @@ sdk.dir=C:\\Users\\<you>\\AppData\\Local\\Android\\Sdk
 
 ## 额外说明
 
-- 仓库中保留了原 PC 端历史源码目录（`src/edu/hitsz/**`）用于对照与迁移参考，但当前 README 只面向 Android 版本。
 - 玩法一致性人工检查项见：`docs/android/parity-checklist.md`。
