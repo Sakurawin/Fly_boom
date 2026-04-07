@@ -9,6 +9,8 @@
     <string name="menu_start">Start</string>
     <string name="hud_score_default">Score: 0</string>
     <string name="hud_hp_default">HP: 3</string>
+    <string name="hud_score_value">Score: %1$d</string>
+    <string name="hud_hp_value">HP: %1$d</string>
     <string name="game_over_title">Game Over</string>
     <string name="game_over_score_format">Score: %1$d</string>
     <string name="game_over_duration_format">Duration: %1$d sec</string>

@@ -6,15 +6,28 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import com.airwar.android.audio.AndroidAudioManager;
 import com.airwar.core.difficulty.DifficultyLevel;
 import com.airwar.core.engine.GameEngine;
+import com.airwar.core.engine.GameStateSnapshot;
 
-public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
-    private final GameEngine engine;
+import java.util.Locale;
+
+public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callback, GameRenderThread.FrameListener {
+    private GameEngine engine;
     private final SpriteRepository spriteRepository;
     private final Object engineLock = new Object();
+    private DifficultyLevel difficultyLevel = DifficultyLevel.NORMAL;
 
     private GameRenderThread renderThread;
+    private AndroidAudioManager audioManager;
+    private SnapshotListener snapshotListener;
+    private boolean bossAudioActive;
+    private int lastHeroShotEvents;
+    private int lastHitEvents;
+    private int lastExplosionEvents;
+    private int lastSupplyEvents;
+    private int lastGameOverEvents;
 
     public GameSurfaceView(Context context) {
         this(context, null);
@@ -26,10 +39,28 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
     public GameSurfaceView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        engine = GameEngine.create(DifficultyLevel.NORMAL);
-        spriteRepository = new SpriteRepository();
+        engine = GameEngine.create(difficultyLevel);
+        spriteRepository = new SpriteRepository(context);
         getHolder().addCallback(this);
         setFocusable(true);
+    }
+
+    public void setDifficulty(String difficulty) {
+        DifficultyLevel parsed = parseDifficulty(difficulty);
+        synchronized (engineLock) {
+            if (renderThread == null) {
+                difficultyLevel = parsed;
+                engine = GameEngine.create(difficultyLevel);
+            }
+        }
+    }
+
+    public void setAudioManager(AndroidAudioManager audioManager) {
+        this.audioManager = audioManager;
+    }
+
+    public void setSnapshotListener(SnapshotListener snapshotListener) {
+        this.snapshotListener = snapshotListener;
     }
 
     @Override
@@ -47,7 +78,7 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         stopRenderThreadIfNeeded();
-        renderThread = new GameRenderThread(holder, engine, engineLock, spriteRepository);
+        renderThread = new GameRenderThread(holder, engine, engineLock, spriteRepository, this);
         renderThread.requestStart();
         renderThread.start();
     }
@@ -93,5 +124,59 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         if (interrupted) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    private static DifficultyLevel parseDifficulty(String difficulty) {
+        if (difficulty == null) {
+            return DifficultyLevel.NORMAL;
+        }
+        return switch (difficulty.toLowerCase(Locale.ROOT)) {
+            case "easy" -> DifficultyLevel.EASY;
+            case "hard" -> DifficultyLevel.HARD;
+            default -> DifficultyLevel.NORMAL;
+        };
+    }
+
+    @Override
+    public void onFrame(GameStateSnapshot snapshot) {
+        if (audioManager != null) {
+            if (snapshot.bossActive() && !bossAudioActive) {
+                audioManager.playBgmBoss();
+                bossAudioActive = true;
+            } else if (!snapshot.bossActive() && bossAudioActive) {
+                audioManager.playBgmGame();
+                bossAudioActive = false;
+            }
+
+            if (snapshot.heroShotEvents() > lastHeroShotEvents) {
+                audioManager.playBulletSfx();
+            }
+            if (snapshot.hitEvents() > lastHitEvents) {
+                audioManager.playHitSfx();
+            }
+            if (snapshot.explosionEvents() > lastExplosionEvents) {
+                audioManager.playBombSfx();
+            }
+            if (snapshot.supplyEvents() > lastSupplyEvents) {
+                audioManager.playSupplySfx();
+            }
+            if (snapshot.gameOverEvents() > lastGameOverEvents) {
+                audioManager.playGameOverSfx();
+            }
+        }
+
+        lastHeroShotEvents = snapshot.heroShotEvents();
+        lastHitEvents = snapshot.hitEvents();
+        lastExplosionEvents = snapshot.explosionEvents();
+        lastSupplyEvents = snapshot.supplyEvents();
+        lastGameOverEvents = snapshot.gameOverEvents();
+
+        if (snapshotListener != null) {
+            post(() -> snapshotListener.onSnapshot(snapshot));
+        }
+    }
+
+    public interface SnapshotListener {
+        void onSnapshot(GameStateSnapshot snapshot);
     }
 }
