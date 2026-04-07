@@ -1,5 +1,14 @@
 # AircraftWar
 
+## Android Migration (WIP)
+
+- New Android modules: `app` + `game-core` with Java 17 and deterministic core tick engine.
+- Implemented screens and flow: `Launcher -> Menu -> Game -> GameOver -> Leaderboard`.
+- Added Android rendering loop (`SurfaceView`), touch target input, HUD overlay, and audio manager facade.
+- Added CSV-based score persistence for Android app files directory.
+- Added parity checklist: `docs/android/parity-checklist.md` and core parity test `GameplayParityTest`.
+- Build note: Android app tasks require local SDK setup (`ANDROID_HOME` or `local.properties`).
+
 ## 项目概述
 
 飞机大战游戏采用面向对象设计，实现了多种设计模式来提升代码的可维护性和可扩展性。主要包含以下设计模式：
