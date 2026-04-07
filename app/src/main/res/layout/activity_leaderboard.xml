@@ -22,5 +22,12 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+
+        <Button
+            android:id="@+id/leaderboard_back_menu_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/leaderboard_back_to_menu" />
     </LinearLayout>
 </ScrollView>

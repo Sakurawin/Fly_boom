@@ -20,4 +20,5 @@
     <string name="leaderboard_title">Leaderboard</string>
     <string name="leaderboard_empty">No scores yet.</string>
     <string name="leaderboard_line_format">%1$d. %2$s - score %3$d, duration %4$ds</string>
+    <string name="leaderboard_back_to_menu">Back to Menu</string>
 </resources>

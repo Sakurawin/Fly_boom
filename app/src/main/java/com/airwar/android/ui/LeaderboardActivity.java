@@ -1,6 +1,8 @@
 package com.airwar.android.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,6 +20,14 @@ public class LeaderboardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_leaderboard);
 
         TextView content = findViewById(R.id.leaderboard_content);
+        Button backToMenuButton = findViewById(R.id.leaderboard_back_menu_button);
+        backToMenuButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, MenuActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
+        });
+
         AndroidScoreDao dao = new AndroidScoreDao(this);
         List<GameScore> scores = dao.readScoresSorted();
 

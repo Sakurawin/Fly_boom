@@ -222,6 +222,25 @@ public final class GameEngine {
                 }
             }
         }
+
+        for (EntityState enemy : enemies) {
+            if (!enemy.active) {
+                continue;
+            }
+            if (Math.abs(enemy.x - heroTargetX) < 28 && Math.abs(enemy.y - heroTargetY) < 28) {
+                enemy.active = false;
+                heroHp = Math.max(0, heroHp - ("boss".equals(enemy.type) ? 30 : 15));
+                hitEvents++;
+                explosionEvents++;
+                if ("boss".equals(enemy.type)) {
+                    bossActive = false;
+                }
+                if (heroHp == 0 && !gameOver) {
+                    gameOver = true;
+                    gameOverEvents++;
+                }
+            }
+        }
     }
 
     private void cleanupEntities() {

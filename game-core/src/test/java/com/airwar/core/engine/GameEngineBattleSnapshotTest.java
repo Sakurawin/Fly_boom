@@ -47,4 +47,18 @@ class GameEngineBattleSnapshotTest {
         assertTrue(snapshot.bossActive());
         assertEquals(1, snapshot.bossCount());
     }
+
+    @Test
+    void heroCollisionWithEnemyReducesHpAndRemovesEnemy() {
+        GameEngine engine = GameEngine.create(DifficultyLevel.NORMAL);
+        engine.setScore(220);
+        engine.tick(40);
+
+        engine.setHeroTarget(256, 90);
+        engine.tick(40);
+
+        GameStateSnapshot snapshot = engine.getSnapshot();
+        assertTrue(snapshot.heroHp() < 100);
+        assertFalse(snapshot.bossActive());
+    }
 }
