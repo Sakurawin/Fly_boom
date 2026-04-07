@@ -1,6 +1,7 @@
 package com.airwar.android.ui;
 
 import android.content.pm.ActivityInfo;
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
 
@@ -18,6 +19,9 @@ public class GameActivity extends AppCompatActivity {
     private String difficulty;
     private TextView hudScore;
     private TextView hudHp;
+    private long gameStartMs;
+    private int lastGameOverEvents;
+    private boolean gameOverNavigated;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,6 +31,7 @@ public class GameActivity extends AppCompatActivity {
 
         difficulty = getIntent().getStringExtra(EXTRA_DIFFICULTY);
         audioManager = new AndroidAudioManager(this);
+        gameStartMs = System.currentTimeMillis();
 
         hudScore = findViewById(R.id.hud_score);
         hudHp = findViewById(R.id.hud_hp);
@@ -68,5 +73,16 @@ public class GameActivity extends AppCompatActivity {
         if (hudHp != null) {
             hudHp.setText(getString(R.string.hud_hp_value, snapshot.heroHp()));
         }
+
+        if (!gameOverNavigated && snapshot.gameOverEvents() > lastGameOverEvents) {
+            gameOverNavigated = true;
+            int durationSec = (int) Math.max(1L, (System.currentTimeMillis() - gameStartMs) / 1000L);
+            Intent intent = new Intent(this, GameOverActivity.class);
+            intent.putExtra(GameOverActivity.EXTRA_SCORE, snapshot.score());
+            intent.putExtra(GameOverActivity.EXTRA_DURATION_SEC, durationSec);
+            startActivity(intent);
+            finish();
+        }
+        lastGameOverEvents = snapshot.gameOverEvents();
     }
 }

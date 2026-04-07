@@ -4,6 +4,7 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.view.SurfaceHolder;
 
+import com.airwar.core.config.GameConstants;
 import com.airwar.core.engine.GameEngine;
 import com.airwar.core.engine.GameStateSnapshot;
 
@@ -85,6 +86,8 @@ public final class GameRenderThread extends Thread {
     private void drawFrame(Canvas canvas, GameStateSnapshot snapshot) {
         float width = canvas.getWidth();
         float height = canvas.getHeight();
+        float scaleX = width / GameConstants.LOGICAL_WIDTH;
+        float scaleY = height / GameConstants.LOGICAL_HEIGHT;
 
         if (sprites.background() != null) {
             canvas.drawBitmap(sprites.background(), null, new Rect(0, 0, (int) width, (int) height), null);
@@ -92,13 +95,13 @@ public final class GameRenderThread extends Thread {
             canvas.drawRGB(8, 16, 32);
         }
 
-        float heroX = snapshot.heroTargetX();
-        float heroY = snapshot.heroTargetY();
-        drawBitmapCentered(canvas, sprites.hero(), heroX, heroY, 52, 52);
+        float heroX = snapshot.heroTargetX() * scaleX;
+        float heroY = snapshot.heroTargetY() * scaleY;
+        drawBitmapCentered(canvas, sprites.hero(), heroX, heroY, (int) (52 * scaleX), (int) (52 * scaleY));
 
-        drawEntities(canvas, snapshot.enemies(), sprites.mobEnemy(), sprites.bossEnemy(), 48, 48);
-        drawEntities(canvas, snapshot.heroBullets(), sprites.heroBullet(), null, 14, 26);
-        drawEntities(canvas, snapshot.enemyBullets(), sprites.enemyBullet(), null, 14, 26);
+        drawEntities(canvas, snapshot.enemies(), sprites.mobEnemy(), sprites.bossEnemy(), 48, 48, scaleX, scaleY);
+        drawEntities(canvas, snapshot.heroBullets(), sprites.heroBullet(), null, 14, 26, scaleX, scaleY);
+        drawEntities(canvas, snapshot.enemyBullets(), sprites.enemyBullet(), null, 14, 26, scaleX, scaleY);
 
         if (snapshot.bossActive()) {
             canvas.drawText("Boss incoming", 24f, 96f, sprites.textPaint());
@@ -111,11 +114,15 @@ public final class GameRenderThread extends Thread {
             android.graphics.Bitmap normal,
             android.graphics.Bitmap boss,
             int width,
-            int height
+            int height,
+            float scaleX,
+            float scaleY
     ) {
         for (GameStateSnapshot.EntitySnapshot entity : entities) {
             android.graphics.Bitmap bitmap = "boss".equals(entity.type()) && boss != null ? boss : normal;
-            drawBitmapCentered(canvas, bitmap, entity.x(), entity.y(), width, height);
+            float x = entity.x() * scaleX;
+            float y = entity.y() * scaleY;
+            drawBitmapCentered(canvas, bitmap, x, y, (int) (width * scaleX), (int) (height * scaleY));
         }
     }
 

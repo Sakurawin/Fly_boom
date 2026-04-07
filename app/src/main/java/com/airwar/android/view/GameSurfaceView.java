@@ -7,6 +7,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import com.airwar.android.audio.AndroidAudioManager;
+import com.airwar.core.config.GameConstants;
 import com.airwar.core.difficulty.DifficultyLevel;
 import com.airwar.core.engine.GameEngine;
 import com.airwar.core.engine.GameStateSnapshot;
@@ -67,8 +68,10 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     public boolean onTouchEvent(MotionEvent event) {
         int action = event.getActionMasked();
         if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE) {
+            int logicalX = toLogicalX(event.getX());
+            int logicalY = toLogicalY(event.getY());
             synchronized (engineLock) {
-                engine.setHeroTarget(Math.round(event.getX()), Math.round(event.getY()));
+                engine.setHeroTarget(logicalX, logicalY);
             }
             return true;
         }
@@ -178,5 +181,27 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
     public interface SnapshotListener {
         void onSnapshot(GameStateSnapshot snapshot);
+    }
+
+    private int toLogicalX(float rawX) {
+        int width = getWidth();
+        if (width <= 0) {
+            return Math.round(rawX);
+        }
+        float logical = rawX * GameConstants.LOGICAL_WIDTH / width;
+        return clamp(Math.round(logical), 0, GameConstants.LOGICAL_WIDTH);
+    }
+
+    private int toLogicalY(float rawY) {
+        int height = getHeight();
+        if (height <= 0) {
+            return Math.round(rawY);
+        }
+        float logical = rawY * GameConstants.LOGICAL_HEIGHT / height;
+        return clamp(Math.round(logical), 0, GameConstants.LOGICAL_HEIGHT);
+    }
+
+    private static int clamp(int value, int min, int max) {
+        return Math.max(min, Math.min(max, value));
     }
 }
