@@ -33,7 +33,7 @@ public class LeaderboardActivity extends AppCompatActivity {
         LinearLayout listContainer = findViewById(R.id.leaderboard_list_container);
         Button backToMenuButton = findViewById(R.id.leaderboard_back_menu_button);
         String difficulty = getIntent().getStringExtra(EXTRA_DIFFICULTY);
-        if (difficulty == null || difficulty.isBlank()) {
+        if (difficulty == null || difficulty.trim().isEmpty()) {
             difficulty = MenuActivity.DIFFICULTY_NORMAL;
         }
         title.setText(getString(R.string.leaderboard_title_with_difficulty, readableDifficulty(difficulty)));
