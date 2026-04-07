@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Aircraft War</string>
+    <string name="menu_title">Aircraft War</string>
+    <string name="menu_difficulty">Difficulty</string>
+    <string name="difficulty_easy">Easy</string>
+    <string name="difficulty_normal">Normal</string>
+    <string name="difficulty_hard">Hard</string>
+    <string name="menu_start">Start</string>
+    <string name="hud_score_default">Score: 0</string>
+    <string name="hud_hp_default">HP: 3</string>
+    <string name="game_over_title">Game Over</string>
+    <string name="game_over_score_format">Score: %1$d</string>
+    <string name="game_over_duration_format">Duration: %1$d sec</string>
+    <string name="game_over_name_hint">Enter your name</string>
+    <string name="game_over_submit">Submit</string>
+    <string name="default_player_name">Player</string>
+    <string name="leaderboard_title">Leaderboard</string>
+    <string name="leaderboard_empty">No scores yet.</string>
+    <string name="leaderboard_line_format">%1$d. %2$s - score %3$d, duration %4$ds</string>
+</resources>
