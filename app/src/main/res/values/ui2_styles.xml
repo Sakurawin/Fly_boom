@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Ui2" />
+
+    <style name="Ui2.Title">
+        <item name="android:textColor">@color/ui2_title</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Ui2.Body">
+        <item name="android:textColor">@color/ui2_body</item>
+    </style>
+
+    <style name="Ui2.Label">
+        <item name="android:textColor">@color/ui2_muted</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+</resources>

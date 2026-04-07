@@ -14,6 +14,7 @@ import java.util.List;
 
 public class AndroidScoreDao {
     private static final String FILE_NAME = "scores.csv";
+    private static final String LEGACY_HEADER = "score,name,durationSec,difficulty";
 
     private final Context appContext;
     private final ScoreCsvSerializer serializer;
@@ -101,6 +102,16 @@ public class AndroidScoreDao {
         if (ScoreCsvSerializer.HEADER.equals(firstLine)) {
             return;
         }
+
+        if (LEGACY_HEADER.equals(firstLine)) {
+            rewriteFileWithCurrentHeader(file);
+            return;
+        }
+
+        rewriteFileWithCurrentHeader(file);
+    }
+
+    private void rewriteFileWithCurrentHeader(File file) throws IOException {
 
         List<String> allLines = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {

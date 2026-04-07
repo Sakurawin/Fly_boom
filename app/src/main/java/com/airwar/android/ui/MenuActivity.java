@@ -7,6 +7,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.airwar.android.R;
 import com.airwar.core.difficulty.DifficultyConfig;
@@ -34,6 +35,10 @@ public class MenuActivity extends AppCompatActivity {
         Button startButton = findViewById(R.id.button_start);
         balanceTable = findViewById(R.id.text_balance_table);
         difficultyPreview = findViewById(R.id.image_difficulty_preview);
+        TextView headerTitle = findViewById(R.id.comp_top_header_title);
+
+        headerTitle.setText(getString(R.string.menu_title));
+        bindBottomNav();
 
         easyButton.setOnClickListener(v -> {
             selectedDifficulty = DIFFICULTY_EASY;
@@ -81,5 +86,22 @@ public class MenuActivity extends AppCompatActivity {
                 cfg.enemyCollisionDamage(),
                 cfg.propDropChancePercent()
         ));
+    }
+
+    private void bindBottomNav() {
+        TextView homeLabel = findViewById(R.id.nav_home_label);
+        TextView rankingLabel = findViewById(R.id.nav_ranking_label);
+
+        homeLabel.setTextColor(ContextCompat.getColor(this, R.color.ui2_accent));
+        rankingLabel.setTextColor(ContextCompat.getColor(this, R.color.ui2_body));
+
+        findViewById(R.id.nav_home).setOnClickListener(v -> {
+        });
+
+        findViewById(R.id.nav_ranking).setOnClickListener(v -> {
+            Intent leaderboardIntent = new Intent(this, LeaderboardActivity.class);
+            leaderboardIntent.putExtra(LeaderboardActivity.EXTRA_DIFFICULTY, selectedDifficulty);
+            startActivity(leaderboardIntent);
+        });
     }
 }

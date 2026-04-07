@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="ui2_space_xs">6dp</dimen>
+    <dimen name="ui2_space_sm">10dp</dimen>
+    <dimen name="ui2_space_md">16dp</dimen>
+    <dimen name="ui2_space_lg">20dp</dimen>
+    <dimen name="ui2_space_xl">28dp</dimen>
+
+    <dimen name="ui2_radius_sm">10dp</dimen>
+    <dimen name="ui2_radius_md">14dp</dimen>
+    <dimen name="ui2_radius_lg">18dp</dimen>
+
+    <dimen name="ui2_header_height">56dp</dimen>
+    <dimen name="ui2_nav_height">72dp</dimen>
+    <dimen name="ui2_avatar_size">56dp</dimen>
+</resources>

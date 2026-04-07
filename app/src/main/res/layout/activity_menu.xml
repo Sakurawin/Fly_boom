@@ -1,130 +1,131 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/ui_bg_screen"
-    android:fillViewport="true">
+    android:background="@drawable/ui2_bg_screen"
+    android:orientation="vertical">
 
-    <LinearLayout
+    <include
+        android:id="@+id/menu_header"
+        layout="@layout/comp_top_header" />
+
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp">
-
-        <TextView
-            android:id="@+id/text_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="14dp"
-            android:letterSpacing="0.08"
-            android:text="@string/menu_title"
-            android:textColor="@color/ui_text_title"
-            android:textSize="34sp"
-            android:textStyle="bold" />
-
-        <ImageView
-            android:id="@+id/image_difficulty_preview"
-            android:layout_width="match_parent"
-            android:layout_height="170dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="14dp"
-            android:adjustViewBounds="true"
-            android:background="@drawable/ui_panel"
-            android:contentDescription="@string/menu_difficulty_preview_desc"
-            android:cropToPadding="true"
-            android:padding="8dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/bg3" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/ui_panel"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:padding="20dp">
 
-            <TextView
-                android:id="@+id/text_difficulty_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/menu_difficulty"
-                android:textColor="@color/ui_text_accent"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+            <ImageView
+                android:id="@+id/image_difficulty_preview"
+                android:layout_width="match_parent"
+                android:layout_height="188dp"
+                android:adjustViewBounds="true"
+                android:background="@drawable/ui2_panel_glass"
+                android:contentDescription="@string/menu_difficulty_preview_desc"
+                android:padding="8dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/bg3" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:gravity="center"
-                android:orientation="horizontal">
+                android:layout_marginTop="14dp"
+                android:background="@drawable/ui2_panel_glass"
+                android:orientation="vertical"
+                android:padding="14dp">
+
+                <TextView
+                    android:id="@+id/text_difficulty_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/menu_difficulty"
+                    android:textColor="@color/ui2_accent"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/button_difficulty_easy"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/ui2_button_chip"
+                        android:text="@string/difficulty_easy"
+                        android:textAllCaps="false"
+                        android:textColor="@color/ui2_title" />
+
+                    <Button
+                        android:id="@+id/button_difficulty_normal"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_marginHorizontal="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/ui2_button_chip"
+                        android:text="@string/difficulty_normal"
+                        android:textAllCaps="false"
+                        android:textColor="@color/ui2_title" />
+
+                    <Button
+                        android:id="@+id/button_difficulty_hard"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/ui2_button_chip"
+                        android:text="@string/difficulty_hard"
+                        android:textAllCaps="false"
+                        android:textColor="@color/ui2_title" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/text_balance_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/menu_balance_title"
+                    android:textColor="@color/ui2_accent"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/text_balance_table"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="monospace"
+                    android:lineSpacingExtra="2dp"
+                    android:textColor="@color/ui2_body"
+                    android:textSize="13sp" />
 
                 <Button
-                    android:id="@+id/button_difficulty_easy"
-                    android:layout_width="0dp"
-                    android:layout_height="44dp"
-                    android:layout_marginEnd="6dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/ui_button_chip"
-                    android:text="@string/difficulty_easy"
+                    android:id="@+id/button_start"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="18dp"
+                    android:background="@drawable/ui2_button_primary"
+                    android:text="@string/menu_start"
                     android:textAllCaps="false"
-                    android:textColor="@color/ui_text_body" />
-
-                <Button
-                    android:id="@+id/button_difficulty_normal"
-                    android:layout_width="0dp"
-                    android:layout_height="44dp"
-                    android:layout_marginHorizontal="6dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/ui_button_chip"
-                    android:text="@string/difficulty_normal"
-                    android:textAllCaps="false"
-                    android:textColor="@color/ui_text_body" />
-
-                <Button
-                    android:id="@+id/button_difficulty_hard"
-                    android:layout_width="0dp"
-                    android:layout_height="44dp"
-                    android:layout_marginStart="6dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/ui_button_chip"
-                    android:text="@string/difficulty_hard"
-                    android:textAllCaps="false"
-                    android:textColor="@color/ui_text_body" />
+                    android:textColor="@color/ui2_button_text"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
             </LinearLayout>
-
-            <TextView
-                android:id="@+id/text_balance_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="@string/menu_balance_title"
-                android:textColor="@color/ui_text_accent"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/text_balance_table"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:fontFamily="monospace"
-                android:lineSpacingExtra="2dp"
-                android:textColor="@color/ui_text_body"
-                android:textSize="13sp" />
-
-            <Button
-                android:id="@+id/button_start"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:layout_marginTop="18dp"
-                android:background="@drawable/ui_button_primary"
-                android:text="@string/menu_start"
-                android:textAllCaps="false"
-                android:textColor="#06213B"
-                android:textSize="18sp"
-                android:textStyle="bold" />
         </LinearLayout>
-    </LinearLayout>
-</ScrollView>
+    </ScrollView>
+
+    <include
+        android:id="@+id/menu_bottom_nav"
+        layout="@layout/comp_bottom_nav" />
+</LinearLayout>

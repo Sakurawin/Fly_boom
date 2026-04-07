@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ui2_bg_start">#080E1A</color>
+    <color name="ui2_bg_end">#0D1321</color>
+    <color name="ui2_panel">#B3142134</color>
+    <color name="ui2_border">#33FFFFFF</color>
+    <color name="ui2_title">#F4F7FF</color>
+    <color name="ui2_body">#BAC7DF</color>
+    <color name="ui2_muted">#8F9BB1</color>
+    <color name="ui2_accent">#FF6A4A</color>
+    <color name="ui2_accent_soft">#66FF6A4A</color>
+    <color name="ui2_button_text">#101726</color>
+</resources>

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ScoreCsvSerializer {
-    public static final String HEADER = "score,name,durationSec,difficulty";
+    public static final String HEADER = "score,name,durationSec,difficulty,avatarId";
 
     public String serialize(GameScore gameScore) {
         return gameScore.getScore()
@@ -13,19 +13,22 @@ public class ScoreCsvSerializer {
                 + ","
                 + gameScore.getDurationSec()
                 + ","
-                + escape(gameScore.getDifficulty());
+                + escape(gameScore.getDifficulty())
+                + ","
+                + escape(gameScore.getAvatarId());
     }
 
     public GameScore deserialize(String line) {
         List<String> fields = splitEscaped(line);
-        if (fields.size() != 3 && fields.size() != 4) {
+        if (fields.size() != 3 && fields.size() != 4 && fields.size() != 5) {
             throw new IllegalArgumentException("invalid score csv line: " + line);
         }
         int score = Integer.parseInt(fields.get(0));
         String name = unescape(fields.get(1));
         int durationSec = Integer.parseInt(fields.get(2));
         String difficulty = fields.size() >= 4 ? unescape(fields.get(3)) : "normal";
-        return new GameScore(score, name, durationSec, difficulty);
+        String avatarId = fields.size() >= 5 ? unescape(fields.get(4)) : "default";
+        return new GameScore(score, name, durationSec, difficulty, avatarId);
     }
 
     private String escape(String value) {

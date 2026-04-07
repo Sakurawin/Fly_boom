@@ -7,8 +7,9 @@ public class GameScore {
     private final String name;
     private final int durationSec;
     private final String difficulty;
+    private final String avatarId;
 
-    public GameScore(int score, String name, int durationSec, String difficulty) {
+    public GameScore(int score, String name, int durationSec, String difficulty, String avatarId) {
         if (score < 0) {
             throw new IllegalArgumentException("score must be non-negative");
         }
@@ -20,10 +21,16 @@ public class GameScore {
         this.durationSec = durationSec;
         String safeDifficulty = difficulty == null ? "normal" : difficulty.trim().toLowerCase();
         this.difficulty = safeDifficulty.isEmpty() ? "normal" : safeDifficulty;
+        String safeAvatarId = avatarId == null ? "default" : avatarId.trim().toLowerCase();
+        this.avatarId = safeAvatarId.isEmpty() ? "default" : safeAvatarId;
+    }
+
+    public GameScore(int score, String name, int durationSec, String difficulty) {
+        this(score, name, durationSec, difficulty, "default");
     }
 
     public GameScore(int score, String name, int durationSec) {
-        this(score, name, durationSec, "normal");
+        this(score, name, durationSec, "normal", "default");
     }
 
     public int getScore() {
@@ -40,5 +47,9 @@ public class GameScore {
 
     public String getDifficulty() {
         return difficulty;
+    }
+
+    public String getAvatarId() {
+        return avatarId;
     }
 }
