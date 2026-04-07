@@ -33,7 +33,7 @@ public class GameOverActivity extends AppCompatActivity {
         int durationSec = getIntent().getIntExtra(EXTRA_DURATION_SEC, 0);
         String difficulty = getIntent().getStringExtra(EXTRA_DIFFICULTY);
 
-        TextView headerTitle = findViewById(R.id.comp_top_header_title);
+        TextView headerTitle = findViewById(R.id.game_over_header);
         TextView scoreText = findViewById(R.id.game_over_score);
         TextView durationText = findViewById(R.id.game_over_duration);
         EditText nameInput = findViewById(R.id.game_over_name_input);

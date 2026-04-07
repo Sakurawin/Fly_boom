@@ -35,7 +35,7 @@ public class MenuActivity extends AppCompatActivity {
         Button startButton = findViewById(R.id.button_start);
         balanceTable = findViewById(R.id.text_balance_table);
         difficultyPreview = findViewById(R.id.image_difficulty_preview);
-        TextView headerTitle = findViewById(R.id.comp_top_header_title);
+        TextView headerTitle = findViewById(R.id.menu_header);
 
         headerTitle.setText(getString(R.string.menu_title));
         bindBottomNav();

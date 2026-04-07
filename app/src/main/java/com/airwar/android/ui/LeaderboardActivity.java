@@ -27,7 +27,7 @@ public class LeaderboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_leaderboard);
 
-        TextView title = findViewById(R.id.comp_top_header_title);
+        TextView title = findViewById(R.id.leaderboard_header);
         TextView emptyText = findViewById(R.id.leaderboard_empty_text);
         LinearLayout top3Container = findViewById(R.id.leaderboard_top3_container);
         LinearLayout listContainer = findViewById(R.id.leaderboard_list_container);
