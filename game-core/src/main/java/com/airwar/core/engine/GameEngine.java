@@ -2,6 +2,7 @@ package com.airwar.core.engine;
 
 import com.airwar.core.difficulty.DifficultyConfig;
 import com.airwar.core.difficulty.DifficultyLevel;
+import com.airwar.core.config.GameConstants;
 import com.airwar.core.effect.EffectScheduler;
 import com.airwar.core.spawn.EnemySpawner;
 
@@ -17,6 +18,8 @@ public final class GameEngine {
 
     private Consumer<String> debugHook = NOOP_HOOK;
     private int score;
+    private int heroTargetX = GameConstants.LOGICAL_WIDTH / 2;
+    private int heroTargetY = GameConstants.LOGICAL_HEIGHT - 140;
 
     private GameEngine(DifficultyLevel level) {
         DifficultyLevel safeLevel = Objects.requireNonNull(level, "level must not be null");
@@ -51,7 +54,7 @@ public final class GameEngine {
     }
 
     public GameStateSnapshot getSnapshot() {
-        return new GameStateSnapshot(enemySpawner.getBossCount());
+        return new GameStateSnapshot(enemySpawner.getBossCount(), heroTargetX, heroTargetY);
     }
 
     public void setScore(int score) {
@@ -59,6 +62,11 @@ public final class GameEngine {
             throw new IllegalArgumentException("score must be non-negative");
         }
         this.score = score;
+    }
+
+    public void setHeroTarget(int x, int y) {
+        this.heroTargetX = x;
+        this.heroTargetY = y;
     }
 
     private void phase(String name) {
