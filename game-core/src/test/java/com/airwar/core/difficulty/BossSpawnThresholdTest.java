@@ -26,14 +26,32 @@ class BossSpawnThresholdTest {
         assertEquals(5, DifficultyConfig.of(DifficultyLevel.EASY).enemyMaxNumber());
         assertEquals(600, DifficultyConfig.of(DifficultyLevel.EASY).cycleDurationMs());
         assertEquals(200, DifficultyConfig.of(DifficultyLevel.EASY).bossScoreThreshold());
+        assertEquals(760, DifficultyConfig.of(DifficultyLevel.EASY).enemySpawnIntervalMs());
+        assertEquals(920, DifficultyConfig.of(DifficultyLevel.EASY).enemyShootIntervalMs());
+        assertEquals(1, DifficultyConfig.of(DifficultyLevel.EASY).mobEnemyHp());
+        assertEquals(4, DifficultyConfig.of(DifficultyLevel.EASY).enemyBulletDamage());
+        assertEquals(10, DifficultyConfig.of(DifficultyLevel.EASY).enemyCollisionDamage());
+        assertEquals(45, DifficultyConfig.of(DifficultyLevel.EASY).propDropChancePercent());
 
         assertEquals(6, DifficultyConfig.of(DifficultyLevel.NORMAL).enemyMaxNumber());
         assertEquals(520, DifficultyConfig.of(DifficultyLevel.NORMAL).cycleDurationMs());
         assertEquals(220, DifficultyConfig.of(DifficultyLevel.NORMAL).bossScoreThreshold());
+        assertEquals(650, DifficultyConfig.of(DifficultyLevel.NORMAL).enemySpawnIntervalMs());
+        assertEquals(800, DifficultyConfig.of(DifficultyLevel.NORMAL).enemyShootIntervalMs());
+        assertEquals(2, DifficultyConfig.of(DifficultyLevel.NORMAL).mobEnemyHp());
+        assertEquals(5, DifficultyConfig.of(DifficultyLevel.NORMAL).enemyBulletDamage());
+        assertEquals(15, DifficultyConfig.of(DifficultyLevel.NORMAL).enemyCollisionDamage());
+        assertEquals(35, DifficultyConfig.of(DifficultyLevel.NORMAL).propDropChancePercent());
 
         assertEquals(7, DifficultyConfig.of(DifficultyLevel.HARD).enemyMaxNumber());
         assertEquals(460, DifficultyConfig.of(DifficultyLevel.HARD).cycleDurationMs());
         assertEquals(250, DifficultyConfig.of(DifficultyLevel.HARD).bossScoreThreshold());
+        assertEquals(540, DifficultyConfig.of(DifficultyLevel.HARD).enemySpawnIntervalMs());
+        assertEquals(700, DifficultyConfig.of(DifficultyLevel.HARD).enemyShootIntervalMs());
+        assertEquals(3, DifficultyConfig.of(DifficultyLevel.HARD).mobEnemyHp());
+        assertEquals(7, DifficultyConfig.of(DifficultyLevel.HARD).enemyBulletDamage());
+        assertEquals(20, DifficultyConfig.of(DifficultyLevel.HARD).enemyCollisionDamage());
+        assertEquals(25, DifficultyConfig.of(DifficultyLevel.HARD).propDropChancePercent());
     }
 
     @Test

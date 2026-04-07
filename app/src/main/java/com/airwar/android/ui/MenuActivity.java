@@ -3,10 +3,14 @@ package com.airwar.android.ui;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.airwar.android.R;
+import com.airwar.core.difficulty.DifficultyConfig;
+import com.airwar.core.difficulty.DifficultyLevel;
 
 public class MenuActivity extends AppCompatActivity {
 
@@ -16,6 +20,8 @@ public class MenuActivity extends AppCompatActivity {
     public static final String DIFFICULTY_HARD = "hard";
 
     private String selectedDifficulty = DIFFICULTY_NORMAL;
+    private TextView balanceTable;
+    private ImageView difficultyPreview;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,23 +32,25 @@ public class MenuActivity extends AppCompatActivity {
         Button normalButton = findViewById(R.id.button_difficulty_normal);
         Button hardButton = findViewById(R.id.button_difficulty_hard);
         Button startButton = findViewById(R.id.button_start);
+        balanceTable = findViewById(R.id.text_balance_table);
+        difficultyPreview = findViewById(R.id.image_difficulty_preview);
 
         easyButton.setOnClickListener(v -> {
             selectedDifficulty = DIFFICULTY_EASY;
-            updateDifficultySelection(easyButton, normalButton, hardButton);
+            updateDifficultySelection(easyButton, normalButton, hardButton, DifficultyLevel.EASY);
         });
 
         normalButton.setOnClickListener(v -> {
             selectedDifficulty = DIFFICULTY_NORMAL;
-            updateDifficultySelection(normalButton, easyButton, hardButton);
+            updateDifficultySelection(normalButton, easyButton, hardButton, DifficultyLevel.NORMAL);
         });
 
         hardButton.setOnClickListener(v -> {
             selectedDifficulty = DIFFICULTY_HARD;
-            updateDifficultySelection(hardButton, easyButton, normalButton);
+            updateDifficultySelection(hardButton, easyButton, normalButton, DifficultyLevel.HARD);
         });
 
-        updateDifficultySelection(normalButton, easyButton, hardButton);
+        updateDifficultySelection(normalButton, easyButton, hardButton, DifficultyLevel.NORMAL);
 
         startButton.setOnClickListener(v -> {
             Intent gameIntent = new Intent(this, GameActivity.class);
@@ -51,9 +59,27 @@ public class MenuActivity extends AppCompatActivity {
         });
     }
 
-    private void updateDifficultySelection(Button selected, Button otherOne, Button otherTwo) {
-        selected.setEnabled(false);
-        otherOne.setEnabled(true);
-        otherTwo.setEnabled(true);
+    private void updateDifficultySelection(Button selected, Button otherOne, Button otherTwo, DifficultyLevel level) {
+        selected.setSelected(true);
+        otherOne.setSelected(false);
+        otherTwo.setSelected(false);
+
+        DifficultyConfig cfg = DifficultyConfig.of(level);
+        int previewRes = switch (level) {
+            case EASY -> R.drawable.bg2;
+            case NORMAL -> R.drawable.bg3;
+            case HARD -> R.drawable.bg5;
+        };
+        difficultyPreview.setImageResource(previewRes);
+
+        balanceTable.setText(getString(
+                R.string.menu_balance_template,
+                cfg.enemySpawnIntervalMs(),
+                cfg.enemyShootIntervalMs(),
+                cfg.mobEnemyHp(),
+                cfg.enemyBulletDamage(),
+                cfg.enemyCollisionDamage(),
+                cfg.propDropChancePercent()
+        ));
     }
 }

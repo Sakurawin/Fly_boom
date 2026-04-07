@@ -64,4 +64,23 @@ class GameEngineBattleSnapshotTest {
         assertFalse(snapshot.bossActive());
         assertTrue(snapshot.explosions().size() > 0);
     }
+
+    @Test
+    void bulletPropChangesHeroBulletPatternTemporarily() {
+        GameEngine engine = GameEngine.create(DifficultyLevel.NORMAL);
+        engine.debugGrantSuperBullet(500);
+
+        for (int i = 0; i < 8; i++) {
+            engine.tick(40);
+        }
+        GameStateSnapshot during = engine.getSnapshot();
+        assertTrue(during.heroBullets().stream().anyMatch(b -> "hero_bullet_super".equals(b.type())));
+
+        engine.tick(600);
+        for (int i = 0; i < 8; i++) {
+            engine.tick(40);
+        }
+        GameStateSnapshot after = engine.getSnapshot();
+        assertTrue(after.heroBullets().stream().anyMatch(b -> "hero_bullet".equals(b.type())));
+    }
 }

@@ -15,6 +15,7 @@ public final class SpriteRepository {
     private final Bitmap mobEnemy;
     private final Bitmap bossEnemy;
     private final Bitmap heroBullet;
+    private final Bitmap heroBulletSuper;
     private final Bitmap enemyBullet;
     private final Bitmap propBullet;
     private final Bitmap propBomb;
@@ -27,6 +28,7 @@ public final class SpriteRepository {
         mobEnemy = decode(context, R.drawable.mob);
         bossEnemy = decode(context, R.drawable.boss);
         heroBullet = decode(context, R.drawable.bullet_hero);
+        heroBulletSuper = decode(context, R.drawable.prop_bullet_plus);
         enemyBullet = decode(context, R.drawable.bullet_enemy);
         propBullet = decode(context, R.drawable.prop_bullet);
         propBomb = decode(context, R.drawable.prop_bomb);
@@ -58,6 +60,10 @@ public final class SpriteRepository {
 
     public Bitmap heroBullet() {
         return heroBullet;
+    }
+
+    public Bitmap heroBulletSuper() {
+        return heroBulletSuper;
     }
 
     public Bitmap enemyBullet() {

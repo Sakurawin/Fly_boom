@@ -100,7 +100,7 @@ public final class GameRenderThread extends Thread {
         drawBitmapCentered(canvas, sprites.hero(), heroX, heroY, (int) (52 * scaleX), (int) (52 * scaleY));
 
         drawEntities(canvas, snapshot.enemies(), sprites.mobEnemy(), sprites.bossEnemy(), 48, 48, scaleX, scaleY);
-        drawEntities(canvas, snapshot.heroBullets(), sprites.heroBullet(), null, 14, 26, scaleX, scaleY);
+        drawHeroBullets(canvas, snapshot.heroBullets(), scaleX, scaleY);
         drawEntities(canvas, snapshot.enemyBullets(), sprites.enemyBullet(), null, 14, 26, scaleX, scaleY);
         drawProps(canvas, snapshot.props(), scaleX, scaleY);
         drawExplosions(canvas, snapshot.explosions(), scaleX, scaleY);
@@ -151,6 +151,17 @@ public final class GameRenderThread extends Thread {
             float x = prop.x() * scaleX;
             float y = prop.y() * scaleY;
             drawBitmapCentered(canvas, bitmap, x, y, (int) (32 * scaleX), (int) (32 * scaleY));
+        }
+    }
+
+    private void drawHeroBullets(Canvas canvas, List<GameStateSnapshot.EntitySnapshot> bullets, float scaleX, float scaleY) {
+        for (GameStateSnapshot.EntitySnapshot bullet : bullets) {
+            android.graphics.Bitmap bitmap = "hero_bullet_super".equals(bullet.type())
+                    ? sprites.heroBulletSuper()
+                    : sprites.heroBullet();
+            float x = bullet.x() * scaleX;
+            float y = bullet.y() * scaleY;
+            drawBitmapCentered(canvas, bitmap, x, y, (int) (16 * scaleX), (int) (28 * scaleY));
         }
     }
 

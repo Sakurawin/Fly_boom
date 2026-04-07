@@ -6,6 +6,7 @@ import com.airwar.core.config.GameConstants;
 import com.airwar.core.effect.EffectScheduler;
 import com.airwar.core.effect.TimedEffect;
 import com.airwar.core.model.aircraft.HeroAircraft;
+import com.airwar.core.model.bullet.BaseBullet;
 import com.airwar.core.spawn.EnemySpawner;
 import com.airwar.core.strategy.CircularShootStrategy;
 import com.airwar.core.strategy.StraightShootStrategy;
@@ -21,6 +22,7 @@ public final class GameEngine {
     private static final Consumer<String> NOOP_HOOK = ignored -> { };
 
     private final EffectScheduler effectScheduler;
+    private final DifficultyConfig difficultyConfig;
     private final EnemySpawner enemySpawner;
     private final HeroAircraft hero;
     private final Random random = new Random(20260407L);
@@ -51,6 +53,7 @@ public final class GameEngine {
     private GameEngine(DifficultyLevel level) {
         DifficultyLevel safeLevel = Objects.requireNonNull(level, "level must not be null");
         DifficultyConfig config = DifficultyConfig.of(safeLevel);
+        this.difficultyConfig = config;
         this.effectScheduler = new EffectScheduler();
         this.enemySpawner = new EnemySpawner(config);
         this.hero = new HeroAircraft(heroTargetX, heroTargetY, 0, 0, GameConstants.HERO_MAX_HP);
@@ -165,23 +168,26 @@ public final class GameEngine {
             heroShootCooldownMs = 0L;
         }
 
-        if (enemySpawnCooldownMs >= 650L) {
+        if (enemySpawnCooldownMs >= difficultyConfig.enemySpawnIntervalMs()) {
             spawnMobEnemy();
             enemySpawnCooldownMs = 0L;
         }
 
-        if (enemyShootCooldownMs >= 800L) {
+        if (enemyShootCooldownMs >= difficultyConfig.enemyShootIntervalMs()) {
             spawnEnemyBullets();
             enemyShootCooldownMs = 0L;
         }
 
         for (EntityState bullet : heroBullets) {
+            bullet.x += bullet.vx;
             bullet.y += bullet.vy;
         }
         for (EntityState bullet : enemyBullets) {
+            bullet.x += bullet.vx;
             bullet.y += bullet.vy;
         }
         for (EntityState enemy : enemies) {
+            enemy.x += enemy.vx;
             enemy.y += enemy.vy;
         }
     }
@@ -220,7 +226,7 @@ public final class GameEngine {
             }
             if (Math.abs(enemyBullet.x - heroTargetX) < 24 && Math.abs(enemyBullet.y - heroTargetY) < 24) {
                 enemyBullet.active = false;
-                heroHp = Math.max(0, heroHp - 5);
+                heroHp = Math.max(0, heroHp - difficultyConfig.enemyBulletDamage());
                 hitEvents++;
                 if (heroHp == 0 && !gameOver) {
                     gameOver = true;
@@ -235,7 +241,10 @@ public final class GameEngine {
             }
             if (Math.abs(enemy.x - heroTargetX) < 28 && Math.abs(enemy.y - heroTargetY) < 28) {
                 enemy.active = false;
-                heroHp = Math.max(0, heroHp - ("boss".equals(enemy.type) ? 30 : 15));
+                int collisionDamage = "boss".equals(enemy.type)
+                        ? difficultyConfig.enemyCollisionDamage() * 2
+                        : difficultyConfig.enemyCollisionDamage();
+                heroHp = Math.max(0, heroHp - collisionDamage);
                 hitEvents++;
                 explosionEvents++;
                 spawnExplosion(enemy.x, enemy.y, 320L, "explosion_collision");
@@ -279,13 +288,24 @@ public final class GameEngine {
     }
 
     private void spawnHeroBullet() {
-        heroBullets.add(new EntityState(heroTargetX, heroTargetY - 26, 0, -14, 1, "hero_bullet"));
+        List<BaseBullet> bullets = hero.shoot();
+        String bulletType = "CIRCULAR".equals(heroShootMode) ? "hero_bullet_super" : "hero_bullet";
+        for (BaseBullet bullet : bullets) {
+            heroBullets.add(new EntityState(
+                    bullet.getLocationX(),
+                    bullet.getLocationY(),
+                    bullet.getSpeedX(),
+                    bullet.getSpeedY(),
+                    1,
+                    bulletType
+            ));
+        }
         heroShotEvents++;
     }
 
     private void spawnMobEnemy() {
         int x = 40 + random.nextInt(Math.max(1, GameConstants.LOGICAL_WIDTH - 80));
-        enemies.add(new EntityState(x, -30, 0, 4, 2, "mob"));
+        enemies.add(new EntityState(x, -30, 0, 4, difficultyConfig.mobEnemyHp(), "mob"));
     }
 
     private void spawnBoss() {
@@ -317,7 +337,7 @@ public final class GameEngine {
     }
 
     private void maybeDropProp(int x, int y, String enemyType) {
-        int chance = "boss".equals(enemyType) ? 100 : 35;
+        int chance = "boss".equals(enemyType) ? 100 : difficultyConfig.propDropChancePercent();
         if (random.nextInt(100) >= chance) {
             return;
         }

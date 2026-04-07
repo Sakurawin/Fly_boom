@@ -71,6 +71,10 @@ public abstract class FlyingObject {
         return speedY;
     }
 
+    public int getSpeedX() {
+        return speedX;
+    }
+
     public int getWidth() {
         return width;
     }

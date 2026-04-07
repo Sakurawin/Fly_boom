@@ -2,32 +2,56 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp">
+    android:background="@drawable/ui_bg_screen"
+    android:padding="20dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/ui_panel"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/leaderboard_title"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/leaderboard_title"
-            android:textAppearance="@style/TextAppearance.Material3.HeadlineMedium" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_marginEnd="8dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_trophy" />
+
+            <TextView
+                android:id="@+id/leaderboard_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/leaderboard_title"
+                android:textColor="@color/ui_text_title"
+                android:textSize="26sp"
+                android:textStyle="bold" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/leaderboard_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+            android:lineSpacingExtra="4dp"
+            android:textColor="@color/ui_text_body"
+            android:textSize="15sp" />
 
         <Button
             android:id="@+id/leaderboard_back_menu_button"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp"
             android:layout_marginTop="20dp"
-            android:text="@string/leaderboard_back_to_menu" />
+            android:background="@drawable/ui_button_primary"
+            android:text="@string/leaderboard_back_to_menu"
+            android:textAllCaps="false"
+            android:textColor="#06213B"
+            android:textStyle="bold" />
     </LinearLayout>
 </ScrollView>

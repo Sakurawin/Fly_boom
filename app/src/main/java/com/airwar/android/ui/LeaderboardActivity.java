@@ -12,6 +12,7 @@ import com.airwar.android.storage.AndroidScoreDao;
 import com.airwar.android.storage.GameScore;
 
 import java.util.List;
+import java.util.Locale;
 
 public class LeaderboardActivity extends AppCompatActivity {
     public static final String EXTRA_DIFFICULTY = "extra_difficulty";
@@ -28,7 +29,7 @@ public class LeaderboardActivity extends AppCompatActivity {
         if (difficulty == null || difficulty.isBlank()) {
             difficulty = MenuActivity.DIFFICULTY_NORMAL;
         }
-        title.setText(getString(R.string.leaderboard_title_with_difficulty, difficulty));
+        title.setText(getString(R.string.leaderboard_title_with_difficulty, readableDifficulty(difficulty)));
 
         backToMenuButton.setOnClickListener(v -> {
             Intent intent = new Intent(this, MenuActivity.class);
@@ -60,5 +61,13 @@ public class LeaderboardActivity extends AppCompatActivity {
             }
         }
         content.setText(builder.toString());
+    }
+
+    private String readableDifficulty(String difficulty) {
+        return switch (difficulty.toLowerCase(Locale.ROOT)) {
+            case MenuActivity.DIFFICULTY_EASY -> getString(R.string.difficulty_label_easy);
+            case MenuActivity.DIFFICULTY_HARD -> getString(R.string.difficulty_label_hard);
+            default -> getString(R.string.difficulty_label_normal);
+        };
     }
 }

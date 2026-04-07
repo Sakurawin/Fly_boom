@@ -3,10 +3,18 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="top"
-    android:background="@color/hud_background"
+    android:background="@drawable/ui_panel"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:padding="12dp">
+    android:padding="10dp"
+    android:layout_margin="10dp">
+
+    <ImageView
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_marginEnd="6dp"
+        android:src="@drawable/ic_score"
+        android:contentDescription="@null" />
 
     <TextView
         android:id="@+id/hud_score"
@@ -15,7 +23,14 @@
         android:layout_weight="1"
         android:text="@string/hud_score_default"
         android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-        android:textColor="@android:color/white" />
+        android:textColor="@color/ui_text_title" />
+
+    <ImageView
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_marginEnd="6dp"
+        android:src="@drawable/ic_heart"
+        android:contentDescription="@null" />
 
     <TextView
         android:id="@+id/hud_hp"
@@ -23,6 +38,6 @@
         android:layout_height="wrap_content"
         android:text="@string/hud_hp_default"
         android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-        android:textColor="@android:color/white" />
+        android:textColor="@color/ui_text_title" />
 
 </LinearLayout>

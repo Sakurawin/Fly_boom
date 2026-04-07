@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="menu_background">#1F2937</color>
-    <color name="hud_background">#66000000</color>
+    <color name="menu_background">#0A1424</color>
+    <color name="hud_background">#9921334A</color>
+    <color name="ui_surface">#CC102136</color>
+    <color name="ui_surface_stroke">#3358A6FF</color>
+    <color name="ui_primary_start">#2E8BFF</color>
+    <color name="ui_primary_end">#41C3FF</color>
+    <color name="ui_text_title">#EAF4FF</color>
+    <color name="ui_text_body">#C8D8EB</color>
+    <color name="ui_text_accent">#8EE7FF</color>
 </resources>

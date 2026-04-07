@@ -2,44 +2,65 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/ui_bg_screen"
+    android:gravity="center"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:padding="20dp">
 
-    <TextView
-        android:id="@+id/game_over_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/game_over_title"
-        android:textAppearance="@style/TextAppearance.Material3.HeadlineMedium" />
-
-    <TextView
-        android:id="@+id/game_over_score"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
-
-    <TextView
-        android:id="@+id/game_over_duration"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
-
-    <EditText
-        android:id="@+id/game_over_name_input"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:hint="@string/game_over_name_hint"
-        android:inputType="textPersonName"
-        android:maxLines="1" />
+        android:background="@drawable/ui_panel"
+        android:orientation="vertical">
 
-    <Button
-        android:id="@+id/game_over_submit_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/game_over_submit" />
+        <TextView
+            android:id="@+id/game_over_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/game_over_title"
+            android:textColor="@color/ui_text_title"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/game_over_score"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textColor="@color/ui_text_accent"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/game_over_duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/ui_text_body"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/game_over_name_input"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/ui_input_bg"
+            android:hint="@string/game_over_name_hint"
+            android:inputType="textPersonName"
+            android:maxLines="1"
+            android:textColor="@color/ui_text_title"
+            android:textColorHint="@color/ui_text_body" />
+
+        <Button
+            android:id="@+id/game_over_submit_button"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/ui_button_primary"
+            android:text="@string/game_over_submit"
+            android:textAllCaps="false"
+            android:textColor="#06213B"
+            android:textStyle="bold" />
+    </LinearLayout>
 
 </LinearLayout>

@@ -7,6 +7,9 @@
     <string name="difficulty_normal">Normal</string>
     <string name="difficulty_hard">Hard</string>
     <string name="menu_start">Start</string>
+    <string name="menu_difficulty_preview_desc">Difficulty preview background</string>
+    <string name="menu_balance_title">Balance Profile</string>
+    <string name="menu_balance_template">Spawn: %1$dms\nEnemy Fire: %2$dms\nMob HP: %3$d\nBullet Damage: %4$d\nCollision Damage: %5$d\nProp Drop: %6$d%%</string>
     <string name="hud_score_default">Score: 0</string>
     <string name="hud_hp_default">HP: 3</string>
     <string name="hud_score_value">Score: %1$d</string>
@@ -22,4 +25,7 @@
     <string name="leaderboard_empty">No scores yet.</string>
     <string name="leaderboard_line_format">%1$d. %2$s - score %3$d, duration %4$ds</string>
     <string name="leaderboard_back_to_menu">Back to Menu</string>
+    <string name="difficulty_label_easy">Easy</string>
+    <string name="difficulty_label_normal">Normal</string>
+    <string name="difficulty_label_hard">Hard</string>
 </resources>
