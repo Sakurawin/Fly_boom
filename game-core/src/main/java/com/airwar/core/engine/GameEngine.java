@@ -27,6 +27,8 @@ public final class GameEngine {
     private final List<EntityState> heroBullets = new ArrayList<>();
     private final List<EntityState> enemyBullets = new ArrayList<>();
     private final List<EntityState> enemies = new ArrayList<>();
+    private final List<EntityState> props = new ArrayList<>();
+    private final List<EntityState> explosions = new ArrayList<>();
 
     private Consumer<String> debugHook = NOOP_HOOK;
     private int score;
@@ -102,7 +104,9 @@ public final class GameEngine {
                 gameOverEvents,
                 mapToSnapshot(heroBullets),
                 mapToSnapshot(enemyBullets),
-                mapToSnapshot(enemies)
+                mapToSnapshot(enemies),
+                mapToSnapshot(props),
+                mapToSnapshot(explosions)
         );
     }
 
@@ -199,6 +203,8 @@ public final class GameEngine {
                         enemy.active = false;
                         score += enemy.type.equals("boss") ? 100 : 20;
                         explosionEvents++;
+                        spawnExplosion(enemy.x, enemy.y, enemy.type.equals("boss") ? 500L : 280L, "explosion_enemy");
+                        maybeDropProp(enemy.x, enemy.y, enemy.type);
                         if (enemy.type.equals("boss")) {
                             bossActive = false;
                         }
@@ -232,6 +238,7 @@ public final class GameEngine {
                 heroHp = Math.max(0, heroHp - ("boss".equals(enemy.type) ? 30 : 15));
                 hitEvents++;
                 explosionEvents++;
+                spawnExplosion(enemy.x, enemy.y, 320L, "explosion_collision");
                 if ("boss".equals(enemy.type)) {
                     bossActive = false;
                 }
@@ -241,12 +248,33 @@ public final class GameEngine {
                 }
             }
         }
+
+        for (EntityState prop : props) {
+            if (!prop.active) {
+                continue;
+            }
+            if (Math.abs(prop.x - heroTargetX) < 26 && Math.abs(prop.y - heroTargetY) < 26) {
+                prop.active = false;
+                supplyEvents++;
+                applyProp(prop.type);
+            }
+        }
     }
 
     private void cleanupEntities() {
         heroBullets.removeIf(b -> !b.active || b.y < -20 || b.y > GameConstants.LOGICAL_HEIGHT + 20);
         enemyBullets.removeIf(b -> !b.active || b.y < -20 || b.y > GameConstants.LOGICAL_HEIGHT + 20);
         enemies.removeIf(e -> !e.active || e.y > GameConstants.LOGICAL_HEIGHT + 60);
+        props.removeIf(p -> !p.active || p.y > GameConstants.LOGICAL_HEIGHT + 60);
+        explosions.removeIf(e -> !e.active);
+        for (EntityState prop : props) {
+            prop.y += prop.vy;
+        }
+        for (EntityState explosion : explosions) {
+            if (System.currentTimeMillis() >= explosion.expireAtMs) {
+                explosion.active = false;
+            }
+        }
         bossActive = enemies.stream().anyMatch(e -> e.active && e.type.equals("boss"));
     }
 
@@ -288,6 +316,50 @@ public final class GameEngine {
         return list;
     }
 
+    private void maybeDropProp(int x, int y, String enemyType) {
+        int chance = "boss".equals(enemyType) ? 100 : 35;
+        if (random.nextInt(100) >= chance) {
+            return;
+        }
+
+        String type;
+        int r = random.nextInt(100);
+        if (r < 45) {
+            type = "prop_bullet";
+        } else if (r < 75) {
+            type = "prop_blood";
+        } else {
+            type = "prop_bomb";
+        }
+        props.add(new EntityState(x, y, 0, 4, 1, type));
+    }
+
+    private void applyProp(String type) {
+        switch (type) {
+            case "prop_blood" -> heroHp = Math.min(GameConstants.HERO_MAX_HP, heroHp + 20);
+            case "prop_bomb" -> {
+                for (EntityState enemy : enemies) {
+                    if (enemy.active && !"boss".equals(enemy.type)) {
+                        enemy.active = false;
+                        explosionEvents++;
+                        spawnExplosion(enemy.x, enemy.y, 220L, "explosion_enemy");
+                        score += 20;
+                    }
+                }
+                enemyBullets.clear();
+            }
+            case "prop_bullet" -> debugGrantSuperBullet(3000);
+            default -> {
+            }
+        }
+    }
+
+    private void spawnExplosion(int x, int y, long durationMs, String type) {
+        EntityState explosion = new EntityState(x, y, 0, 0, 1, type);
+        explosion.expireAtMs = System.currentTimeMillis() + durationMs;
+        explosions.add(explosion);
+    }
+
     private static final class EntityState {
         private int x;
         private int y;
@@ -296,6 +368,7 @@ public final class GameEngine {
         private int hp;
         private final String type;
         private boolean active = true;
+        private long expireAtMs = Long.MAX_VALUE;
 
         private EntityState(int x, int y, int vx, int vy, int hp, String type) {
             this.x = x;

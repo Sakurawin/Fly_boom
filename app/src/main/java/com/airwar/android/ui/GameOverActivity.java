@@ -15,6 +15,7 @@ import com.airwar.android.storage.GameScore;
 public class GameOverActivity extends AppCompatActivity {
     public static final String EXTRA_SCORE = "extra_score";
     public static final String EXTRA_DURATION_SEC = "extra_duration_sec";
+    public static final String EXTRA_DIFFICULTY = "extra_difficulty";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,6 +24,7 @@ public class GameOverActivity extends AppCompatActivity {
 
         int score = getIntent().getIntExtra(EXTRA_SCORE, 0);
         int durationSec = getIntent().getIntExtra(EXTRA_DURATION_SEC, 0);
+        String difficulty = getIntent().getStringExtra(EXTRA_DIFFICULTY);
 
         TextView scoreText = findViewById(R.id.game_over_score);
         TextView durationText = findViewById(R.id.game_over_duration);
@@ -37,9 +39,11 @@ public class GameOverActivity extends AppCompatActivity {
             String playerName = inputName.isEmpty() ? getString(R.string.default_player_name) : inputName;
 
             AndroidScoreDao dao = new AndroidScoreDao(this);
-            dao.appendScore(new GameScore(score, playerName, durationSec));
+            dao.appendScore(new GameScore(score, playerName, durationSec, difficulty));
 
-            startActivity(new Intent(this, LeaderboardActivity.class));
+            Intent leaderboardIntent = new Intent(this, LeaderboardActivity.class);
+            leaderboardIntent.putExtra(LeaderboardActivity.EXTRA_DIFFICULTY, difficulty);
+            startActivity(leaderboardIntent);
             finish();
         });
     }

@@ -16,6 +16,10 @@ public final class SpriteRepository {
     private final Bitmap bossEnemy;
     private final Bitmap heroBullet;
     private final Bitmap enemyBullet;
+    private final Bitmap propBullet;
+    private final Bitmap propBomb;
+    private final Bitmap propBlood;
+    private final Paint explosionPaint;
 
     public SpriteRepository(Context context) {
         background = decode(context, R.drawable.bg);
@@ -24,10 +28,16 @@ public final class SpriteRepository {
         bossEnemy = decode(context, R.drawable.boss);
         heroBullet = decode(context, R.drawable.bullet_hero);
         enemyBullet = decode(context, R.drawable.bullet_enemy);
+        propBullet = decode(context, R.drawable.prop_bullet);
+        propBomb = decode(context, R.drawable.prop_bomb);
+        propBlood = decode(context, R.drawable.prop_blood);
 
         textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         textPaint.setColor(Color.WHITE);
         textPaint.setTextSize(36f);
+
+        explosionPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        explosionPaint.setColor(Color.argb(180, 255, 140, 40));
     }
 
     public Bitmap background() {
@@ -52,6 +62,22 @@ public final class SpriteRepository {
 
     public Bitmap enemyBullet() {
         return enemyBullet;
+    }
+
+    public Bitmap propBullet() {
+        return propBullet;
+    }
+
+    public Bitmap propBomb() {
+        return propBomb;
+    }
+
+    public Bitmap propBlood() {
+        return propBlood;
+    }
+
+    public Paint explosionPaint() {
+        return explosionPaint;
     }
 
     public Paint textPaint() {

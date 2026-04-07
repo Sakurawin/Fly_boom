@@ -80,6 +80,7 @@ public class GameActivity extends AppCompatActivity {
             Intent intent = new Intent(this, GameOverActivity.class);
             intent.putExtra(GameOverActivity.EXTRA_SCORE, snapshot.score());
             intent.putExtra(GameOverActivity.EXTRA_DURATION_SEC, durationSec);
+            intent.putExtra(GameOverActivity.EXTRA_DIFFICULTY, difficulty == null ? MenuActivity.DIFFICULTY_NORMAL : difficulty);
             startActivity(intent);
             finish();
         }

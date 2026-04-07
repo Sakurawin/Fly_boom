@@ -38,7 +38,12 @@ public class AndroidScoreDao {
     }
 
     public List<GameScore> readScoresSorted() {
+        return readScoresSortedByDifficulty(null);
+    }
+
+    public List<GameScore> readScoresSortedByDifficulty(String difficulty) {
         List<GameScore> scores = new ArrayList<>();
+        String filterDifficulty = difficulty == null ? null : difficulty.trim().toLowerCase();
         try {
             ensureHeader();
             File file = getScoreFile();
@@ -54,7 +59,10 @@ public class AndroidScoreDao {
                         continue;
                     }
                     try {
-                        scores.add(serializer.deserialize(line));
+                        GameScore score = serializer.deserialize(line);
+                        if (filterDifficulty == null || filterDifficulty.isEmpty() || filterDifficulty.equals(score.getDifficulty())) {
+                            scores.add(score);
+                        }
                     } catch (RuntimeException ignored) {
                     }
                 }
@@ -106,8 +114,15 @@ public class AndroidScoreDao {
             writer.write(ScoreCsvSerializer.HEADER);
             writer.newLine();
             for (String line : allLines) {
-                writer.write(line);
-                writer.newLine();
+                if (line == null || line.trim().isEmpty()) {
+                    continue;
+                }
+                try {
+                    GameScore score = serializer.deserialize(line);
+                    writer.write(serializer.serialize(score));
+                    writer.newLine();
+                } catch (RuntimeException ignored) {
+                }
             }
         }
     }

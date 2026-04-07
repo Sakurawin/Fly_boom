@@ -16,13 +16,17 @@ public record GameStateSnapshot(
         int gameOverEvents,
         List<EntitySnapshot> heroBullets,
         List<EntitySnapshot> enemyBullets,
-        List<EntitySnapshot> enemies
+        List<EntitySnapshot> enemies,
+        List<EntitySnapshot> props,
+        List<EntitySnapshot> explosions
 ) {
 
     public GameStateSnapshot {
         heroBullets = List.copyOf(heroBullets);
         enemyBullets = List.copyOf(enemyBullets);
         enemies = List.copyOf(enemies);
+        props = List.copyOf(props);
+        explosions = List.copyOf(explosions);
     }
 
     public record EntitySnapshot(int x, int y, String type) {

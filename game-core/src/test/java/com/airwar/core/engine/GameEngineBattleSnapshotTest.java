@@ -21,6 +21,8 @@ class GameEngineBattleSnapshotTest {
         assertTrue(snapshot.heroBullets().isEmpty());
         assertTrue(snapshot.enemyBullets().isEmpty());
         assertTrue(snapshot.enemies().isEmpty());
+        assertTrue(snapshot.props().isEmpty());
+        assertTrue(snapshot.explosions().isEmpty());
     }
 
     @Test
@@ -60,5 +62,6 @@ class GameEngineBattleSnapshotTest {
         GameStateSnapshot snapshot = engine.getSnapshot();
         assertTrue(snapshot.heroHp() < 100);
         assertFalse(snapshot.bossActive());
+        assertTrue(snapshot.explosions().size() > 0);
     }
 }

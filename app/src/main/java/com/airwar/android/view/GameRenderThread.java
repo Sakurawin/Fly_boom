@@ -102,6 +102,8 @@ public final class GameRenderThread extends Thread {
         drawEntities(canvas, snapshot.enemies(), sprites.mobEnemy(), sprites.bossEnemy(), 48, 48, scaleX, scaleY);
         drawEntities(canvas, snapshot.heroBullets(), sprites.heroBullet(), null, 14, 26, scaleX, scaleY);
         drawEntities(canvas, snapshot.enemyBullets(), sprites.enemyBullet(), null, 14, 26, scaleX, scaleY);
+        drawProps(canvas, snapshot.props(), scaleX, scaleY);
+        drawExplosions(canvas, snapshot.explosions(), scaleX, scaleY);
 
         if (snapshot.bossActive()) {
             canvas.drawText("Boss incoming", 24f, 96f, sprites.textPaint());
@@ -137,6 +139,28 @@ public final class GameRenderThread extends Thread {
             return;
         }
         canvas.drawRect(dst, new android.graphics.Paint());
+    }
+
+    private void drawProps(Canvas canvas, List<GameStateSnapshot.EntitySnapshot> props, float scaleX, float scaleY) {
+        for (GameStateSnapshot.EntitySnapshot prop : props) {
+            android.graphics.Bitmap bitmap = switch (prop.type()) {
+                case "prop_bomb" -> sprites.propBomb();
+                case "prop_blood" -> sprites.propBlood();
+                default -> sprites.propBullet();
+            };
+            float x = prop.x() * scaleX;
+            float y = prop.y() * scaleY;
+            drawBitmapCentered(canvas, bitmap, x, y, (int) (32 * scaleX), (int) (32 * scaleY));
+        }
+    }
+
+    private void drawExplosions(Canvas canvas, List<GameStateSnapshot.EntitySnapshot> explosions, float scaleX, float scaleY) {
+        for (GameStateSnapshot.EntitySnapshot effect : explosions) {
+            float x = effect.x() * scaleX;
+            float y = effect.y() * scaleY;
+            float r = Math.max(10f, 26f * Math.max(scaleX, scaleY));
+            canvas.drawCircle(x, y, r, sprites.explosionPaint());
+        }
     }
 
     public interface FrameListener {
