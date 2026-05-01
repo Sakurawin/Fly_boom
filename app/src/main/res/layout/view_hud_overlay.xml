@@ -40,4 +40,13 @@
         android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
         android:textColor="@color/ui_text_title" />
 
+    <TextView
+        android:id="@+id/hud_room_state"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:text="@string/hud_room_state_default"
+        android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+        android:textColor="@color/ui_text_title" />
+
 </LinearLayout>
