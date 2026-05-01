@@ -28,11 +28,15 @@ public class RoomActivity extends AppCompatActivity implements MultiplayerSessio
     private TextView roomCodeView;
     private TextView roomOwnerView;
     private TextView roomStatusView;
+    private TextView roomStatusDetailView;
+    private TextView roomSelfStateView;
+    private TextView roomOpponentStateView;
     private TextView roomConnectionView;
     private Button readyButton;
     private Button syncButton;
     private Button startButton;
     private String selectedDifficulty;
+    private boolean gameNavigated;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +64,9 @@ public class RoomActivity extends AppCompatActivity implements MultiplayerSessio
         roomCodeView = findViewById(R.id.room_code_value);
         roomOwnerView = findViewById(R.id.room_owner_value);
         roomStatusView = findViewById(R.id.room_status_value);
+        roomStatusDetailView = findViewById(R.id.room_status_detail_value);
+        roomSelfStateView = findViewById(R.id.room_self_state_value);
+        roomOpponentStateView = findViewById(R.id.room_opponent_state_value);
         roomConnectionView = findViewById(R.id.room_connection_value);
         readyButton = findViewById(R.id.button_room_ready);
         syncButton = findViewById(R.id.button_room_sync);
@@ -72,6 +79,7 @@ public class RoomActivity extends AppCompatActivity implements MultiplayerSessio
         syncButton.setOnClickListener(v -> syncRoomState());
         startButton.setOnClickListener(v -> startGame());
 
+        MultiplayerSession.getInstance().connectIfNeeded();
         MultiplayerSession.getInstance().addListener(this);
         renderSnapshot(MultiplayerSession.getInstance().snapshot());
         syncRoomState();
@@ -86,21 +94,84 @@ public class RoomActivity extends AppCompatActivity implements MultiplayerSessio
 
     @Override
     public void onSessionUpdated(MultiplayerSession.Snapshot snapshot) {
+        if (!gameNavigated && shouldEnterGame(snapshot)) {
+            gameNavigated = true;
+            Intent gameIntent = new Intent(this, GameActivity.class);
+            gameIntent.putExtra(EXTRA_DIFFICULTY, selectedDifficulty);
+            startActivity(gameIntent);
+            finish();
+            return;
+        }
         renderSnapshot(snapshot);
+    }
+
+    private boolean shouldEnterGame(MultiplayerSession.Snapshot snapshot) {
+        if (snapshot.room() != null && snapshot.room().getStatus() == AircraftWar.RoomStatus.ROOM_STATUS_PLAYING) {
+            return true;
+        }
+        for (AircraftWar.RoomPlayerScore score : snapshot.scores()) {
+            if (score.getUsername().equals(snapshot.username())
+                    && score.getStatus() == AircraftWar.PlayerStatus.PLAYER_STATUS_PLAYING) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void renderSnapshot(MultiplayerSession.Snapshot snapshot) {
         AircraftWar.Room room = snapshot.room();
+        AircraftWar.Player selfPlayer = findPlayer(room, snapshot.username());
+        AircraftWar.Player opponentPlayer = findOpponent(room, snapshot.username());
         roomCodeView.setText(snapshot.roomId().isEmpty() ? "-" : snapshot.roomId());
         roomOwnerView.setText(snapshot.username().isEmpty() ? "-" : snapshot.username());
-        roomStatusView.setText(readableRoomStatus(room == null ? null : room.getStatus()));
+        roomStatusView.setText(readableStageTitle(snapshot, selfPlayer, opponentPlayer));
+        roomStatusDetailView.setText(readableStageDetail(snapshot, selfPlayer, opponentPlayer));
+        roomSelfStateView.setText(getString(
+                R.string.multiplayer_player_line,
+                snapshot.username().isEmpty() ? "-" : snapshot.username(),
+                readablePlayerState(selfPlayer == null ? null : selfPlayer.getStatus())
+        ));
+        roomOpponentStateView.setText(getString(
+                R.string.multiplayer_player_line,
+                opponentPlayer == null ? getString(R.string.multiplayer_unknown_opponent) : opponentPlayer.getUsername(),
+                readablePlayerState(opponentPlayer == null ? null : opponentPlayer.getStatus())
+        ));
         roomConnectionView.setText(readableConnectionStatus(snapshot.connectionState()));
 
         boolean hasRoom = !snapshot.roomId().isEmpty();
         boolean isHost = isHost(snapshot);
-        readyButton.setEnabled(hasRoom);
+        boolean selfReady = selfPlayer != null && selfPlayer.getStatus() == AircraftWar.PlayerStatus.PLAYER_STATUS_READY;
+        boolean roomPlaying = room != null && room.getStatus() == AircraftWar.RoomStatus.ROOM_STATUS_PLAYING;
+        boolean roomFinished = room != null && room.getStatus() == AircraftWar.RoomStatus.ROOM_STATUS_FINISHED;
+        readyButton.setText(selfReady ? getString(R.string.multiplayer_ready_completed) : getString(R.string.multiplayer_ready_room));
+        readyButton.setEnabled(hasRoom && !selfReady && !roomPlaying && !roomFinished);
         syncButton.setEnabled(hasRoom);
-        startButton.setEnabled(hasRoom && isHost);
+        startButton.setText(isHost ? getString(R.string.menu_start) : getString(R.string.multiplayer_waiting_host_start));
+        startButton.setEnabled(hasRoom && isHost && room != null && room.getStatus() == AircraftWar.RoomStatus.ROOM_STATUS_READY);
+    }
+
+    private AircraftWar.Player findPlayer(AircraftWar.Room room, String username) {
+        if (room == null) {
+            return null;
+        }
+        for (AircraftWar.Player player : room.getPlayersList()) {
+            if (player.getUsername().equals(username)) {
+                return player;
+            }
+        }
+        return null;
+    }
+
+    private AircraftWar.Player findOpponent(AircraftWar.Room room, String username) {
+        if (room == null) {
+            return null;
+        }
+        for (AircraftWar.Player player : room.getPlayersList()) {
+            if (!player.getUsername().equals(username)) {
+                return player;
+            }
+        }
+        return null;
     }
 
     private boolean isHost(MultiplayerSession.Snapshot snapshot) {
@@ -166,9 +237,13 @@ public class RoomActivity extends AppCompatActivity implements MultiplayerSessio
                         return;
                     }
                     MultiplayerSession.getInstance().applyRoomState(response.getRoom(), java.util.List.of(), false, null);
-                    Intent gameIntent = new Intent(this, GameActivity.class);
-                    gameIntent.putExtra(EXTRA_DIFFICULTY, selectedDifficulty);
-                    startActivity(gameIntent);
+                    if (!gameNavigated) {
+                        gameNavigated = true;
+                        Intent gameIntent = new Intent(this, GameActivity.class);
+                        gameIntent.putExtra(EXTRA_DIFFICULTY, selectedDifficulty);
+                        startActivity(gameIntent);
+                        finish();
+                    }
                 }
         );
     }
@@ -209,6 +284,60 @@ public class RoomActivity extends AppCompatActivity implements MultiplayerSessio
             case ROOM_STATUS_PLAYING -> getString(R.string.multiplayer_room_playing);
             case ROOM_STATUS_FINISHED -> getString(R.string.multiplayer_room_finished);
             default -> getString(R.string.multiplayer_room_status_unknown);
+        };
+    }
+
+    private String readableStageTitle(MultiplayerSession.Snapshot snapshot, AircraftWar.Player selfPlayer, AircraftWar.Player opponentPlayer) {
+        AircraftWar.Room room = snapshot.room();
+        if (room == null) {
+            return getString(R.string.multiplayer_room_stage_unknown);
+        }
+        return switch (room.getStatus()) {
+            case ROOM_STATUS_WAITING -> getString(R.string.multiplayer_room_stage_created);
+            case ROOM_STATUS_FULL -> opponentPlayer == null
+                    ? getString(R.string.multiplayer_room_stage_waiting_player)
+                    : getString(R.string.multiplayer_room_stage_player_joined);
+            case ROOM_STATUS_READY -> isHost(snapshot)
+                    ? getString(R.string.multiplayer_room_stage_ready_host)
+                    : getString(R.string.multiplayer_room_stage_ready_guest);
+            case ROOM_STATUS_PLAYING -> getString(R.string.multiplayer_room_stage_playing);
+            case ROOM_STATUS_FINISHED -> getString(R.string.multiplayer_room_stage_finished);
+            default -> getString(R.string.multiplayer_room_stage_unknown);
+        };
+    }
+
+    private String readableStageDetail(MultiplayerSession.Snapshot snapshot, AircraftWar.Player selfPlayer, AircraftWar.Player opponentPlayer) {
+        AircraftWar.Room room = snapshot.room();
+        if (room == null) {
+            return getString(R.string.multiplayer_room_status_unknown);
+        }
+        if (room.getStatus() == AircraftWar.RoomStatus.ROOM_STATUS_WAITING) {
+            return getString(R.string.multiplayer_room_stage_waiting_player);
+        }
+        if (room.getStatus() == AircraftWar.RoomStatus.ROOM_STATUS_FULL) {
+            boolean selfReady = selfPlayer != null && selfPlayer.getStatus() == AircraftWar.PlayerStatus.PLAYER_STATUS_READY;
+            boolean opponentReady = opponentPlayer != null && opponentPlayer.getStatus() == AircraftWar.PlayerStatus.PLAYER_STATUS_READY;
+            if (selfReady && !opponentReady) {
+                return getString(R.string.multiplayer_room_stage_self_ready);
+            }
+            if (!selfReady && opponentReady) {
+                return getString(R.string.multiplayer_room_stage_opponent_ready);
+            }
+            return getString(R.string.multiplayer_room_stage_waiting_ready);
+        }
+        return readableRoomStatus(room.getStatus());
+    }
+
+    private String readablePlayerState(AircraftWar.PlayerStatus status) {
+        if (status == null) {
+            return getString(R.string.multiplayer_player_state_waiting);
+        }
+        return switch (status) {
+            case PLAYER_STATUS_JOINED -> getString(R.string.multiplayer_player_state_joined);
+            case PLAYER_STATUS_READY -> getString(R.string.multiplayer_player_state_ready);
+            case PLAYER_STATUS_PLAYING -> getString(R.string.multiplayer_player_state_playing);
+            case PLAYER_STATUS_FINISHED -> getString(R.string.multiplayer_player_state_finished);
+            default -> getString(R.string.multiplayer_player_state_waiting);
         };
     }
 
