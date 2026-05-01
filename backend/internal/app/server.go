@@ -39,6 +39,7 @@ type Server struct {
 	closeOnce sync.Once
 	stopCh    chan struct{}
 	doneCh    chan struct{}
+	randMu    sync.Mutex
 }
 
 type roomState struct {
@@ -184,8 +185,9 @@ func (s *Server) handleCreateRoom(w http.ResponseWriter, r *http.Request) {
 	}
 	now := s.cfg.Now()
 	player := &pb.Player{Username: req.Username, Status: pb.PlayerStatus_PLAYER_STATUS_JOINED, IsHost: true}
-	room := &pb.Room{RoomId: newRoomID(now), Status: pb.RoomStatus_ROOM_STATUS_WAITING, Players: []*pb.Player{proto.Clone(player).(*pb.Player)}}
 	s.mu.Lock()
+	roomID := s.newUniqueRoomIDLocked(now)
+	room := &pb.Room{RoomId: roomID, Status: pb.RoomStatus_ROOM_STATUS_WAITING, Players: []*pb.Player{proto.Clone(player).(*pb.Player)}}
 		s.rooms[room.RoomId] = &roomState{
 			room:        room,
 			playerOrder: []string{req.Username},
@@ -785,5 +787,17 @@ func enemyScore(enemyType pb.EnemyType) int32 {
 }
 
 func newRoomID(now time.Time) string {
-	return fmt.Sprintf("room-%d-%04d", now.UnixNano(), rand.Intn(10000))
+	_ = now
+	return fmt.Sprintf("%06d", rand.Intn(1000000))
+}
+
+func (s *Server) newUniqueRoomIDLocked(now time.Time) string {
+	for {
+		s.randMu.Lock()
+		candidate := newRoomID(now)
+		s.randMu.Unlock()
+		if _, exists := s.rooms[candidate]; !exists {
+			return candidate
+		}
+	}
 }

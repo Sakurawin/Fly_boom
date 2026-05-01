@@ -57,9 +57,15 @@
     <string name="multiplayer_room_ready">准备完成</string>
     <string name="multiplayer_room_playing">对战中</string>
     <string name="multiplayer_room_finished">已结算</string>
+    <string name="multiplayer_room_title">联机房间</string>
+    <string name="multiplayer_room_code_label">房间号</string>
+    <string name="multiplayer_room_owner_label">当前玩家</string>
+    <string name="multiplayer_room_status_label">房间状态</string>
+    <string name="multiplayer_room_connection_label">连接状态</string>
     <string name="multiplayer_error_missing_base_url">请先填写服务地址</string>
     <string name="multiplayer_error_missing_username">请先填写用户名</string>
     <string name="multiplayer_error_missing_room_id">请先填写房间号</string>
+    <string name="multiplayer_error_room_id_format">房间号应为 6 位数字</string>
     <string name="multiplayer_error_start_not_ready">房间尚未满足开始条件，请先确认双方已准备</string>
     <string name="multiplayer_action_success">操作成功</string>
     <string name="multiplayer_connection_connected">已连接</string>

@@ -17,6 +17,10 @@
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
+            android:name=".ui.RoomActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".ui.MenuActivity"
             android:exported="false"
             android:screenOrientation="portrait" />

@@ -1,9 +1,10 @@
 package com.airwar.android.ui;
 
-import android.content.Context;
 import android.content.Intent;
 
 import androidx.test.core.app.ActivityScenario;
+import android.content.Context;
+
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
@@ -18,15 +19,13 @@ import org.junit.runner.RunWith;
 import hitsz.aircraftwar.backend.AircraftWar;
 
 import static androidx.test.espresso.Espresso.onView;
-import static androidx.test.espresso.action.ViewActions.click;
-import static androidx.test.espresso.intent.Intents.intended;
-import static androidx.test.espresso.intent.Intents.init;
-import static androidx.test.espresso.intent.Intents.release;
-import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
+import static androidx.test.espresso.assertion.ViewAssertions.matches;
+import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
+import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
 @RunWith(AndroidJUnit4.class)
-public class MenuToGameFlowTest {
+public class RoomActivityLaunchTest {
 
     @Before
     public void setUp() {
@@ -37,15 +36,12 @@ public class MenuToGameFlowTest {
         MultiplayerSession.getInstance().applyRoomState(
                 AircraftWar.Room.newBuilder()
                         .setRoomId("123456")
-                        .setStatus(AircraftWar.RoomStatus.ROOM_STATUS_READY)
-                        .addPlayers(AircraftWar.Player.newBuilder().setUsername("alice").setIsHost(true).build())
-                        .addPlayers(AircraftWar.Player.newBuilder().setUsername("bob").build())
+                        .setStatus(AircraftWar.RoomStatus.ROOM_STATUS_WAITING)
                         .build(),
                 java.util.List.of(),
                 false,
                 null
         );
-        init();
     }
 
     @After
@@ -53,18 +49,18 @@ public class MenuToGameFlowTest {
         Context context = ApplicationProvider.getApplicationContext();
         MultiplayerSession.getInstance().clearRoomContext();
         LocalMultiplayerPrefs.clearRoomId(context);
-        release();
     }
 
     @Test
-    public void clickingStart_navigatesToGameActivity() {
+    public void launchesAndShowsRoomCode() {
         Context context = ApplicationProvider.getApplicationContext();
         Intent intent = new Intent(context, RoomActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
         try (ActivityScenario<RoomActivity> ignored = ActivityScenario.launch(intent)) {
-            onView(withId(R.id.button_room_start)).perform(click());
-            intended(hasComponent(GameActivity.class.getName()));
+            onView(withId(R.id.room_header)).check(matches(withText(R.string.multiplayer_room_title)));
+            onView(withId(R.id.room_code_value)).check(matches(withText("123456")));
+            onView(withId(R.id.button_room_ready)).check(matches(isDisplayed()));
         }
     }
 }

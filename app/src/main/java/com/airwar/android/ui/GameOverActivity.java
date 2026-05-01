@@ -40,7 +40,7 @@ public class GameOverActivity extends AppCompatActivity implements MultiplayerSe
         score = getIntent().getIntExtra(EXTRA_SCORE, 0);
         int durationSec = getIntent().getIntExtra(EXTRA_DURATION_SEC, 0);
 
-        TextView headerTitle = findViewById(R.id.comp_top_header_title);
+        TextView headerTitle = findViewById(R.id.game_over_header);
         scoreText = findViewById(R.id.game_over_score);
         TextView durationText = findViewById(R.id.game_over_duration);
         statusText = findViewById(R.id.game_over_status);

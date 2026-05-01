@@ -8,7 +8,9 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -169,6 +171,46 @@ func TestDisconnectFreezesScoreAndStateRecovery(t *testing.T) {
 	leaderboard := postProto(t, server.URL, "/leaderboard", &pb.GetLeaderboardRequest{Limit: 10}, &pb.GetLeaderboardResponse{}).(*pb.GetLeaderboardResponse)
 	if leaderboard.Entries[0].Username != "bob" || leaderboard.Entries[1].Username != "alice" {
 		t.Fatalf("unexpected leaderboard order after disconnect: %+v", leaderboard.Entries)
+	}
+}
+
+func TestCreateRoomReturnsSixDigitNumericRoomID(t *testing.T) {
+	server := newTestServer(t)
+	defer server.Close()
+
+	createResp := postProto(t, server.URL, "/rooms/create", &pb.CreateRoomRequest{Username: "alice"}, &pb.CreateRoomResponse{}).(*pb.CreateRoomResponse)
+	if !regexp.MustCompile(`^\d{6}$`).MatchString(createResp.Room.GetRoomId()) {
+		t.Fatalf("room id = %q, want six-digit numeric code", createResp.Room.GetRoomId())
+	}
+}
+
+func TestConcurrentRoomCreationReturnsUniqueRoomIDs(t *testing.T) {
+	server := newTestServer(t)
+	defer server.Close()
+
+	const roomCount = 100
+	ids := make(chan string, roomCount)
+	var wg sync.WaitGroup
+	for i := 0; i < roomCount; i++ {
+		wg.Add(1)
+		go func(index int) {
+			defer wg.Done()
+			resp := postProto(t, server.URL, "/rooms/create", &pb.CreateRoomRequest{Username: "player-" + strings.ReplaceAll(time.Now().Add(time.Duration(index)*time.Nanosecond).Format("150405.000000000"), ".", "")}, &pb.CreateRoomResponse{}).(*pb.CreateRoomResponse)
+			ids <- resp.Room.GetRoomId()
+		}(i)
+	}
+	wg.Wait()
+	close(ids)
+
+	seen := make(map[string]struct{}, roomCount)
+	for id := range ids {
+		if !regexp.MustCompile(`^\d{6}$`).MatchString(id) {
+			t.Fatalf("room id = %q, want six-digit numeric code", id)
+		}
+		if _, exists := seen[id]; exists {
+			t.Fatalf("duplicate room id generated: %s", id)
+		}
+		seen[id] = struct{}{}
 	}
 }
 
