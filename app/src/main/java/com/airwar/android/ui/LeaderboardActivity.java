@@ -126,7 +126,7 @@ public class LeaderboardActivity extends AppCompatActivity {
                 TextView scoreView = row.findViewById(R.id.rank_score);
 
                 rankView.setText(String.format(java.util.Locale.ROOT, "%02d", rank));
-                avatarView.setImageResource(PilotAvatarRegistry.drawableFor(PilotAvatarRegistry.DEFAULT_AVATAR_ID));
+                avatarView.setImageResource(PilotAvatarRegistry.drawableFor(entry.getAvatarId()));
                 nameView.setText(entry.getUsername());
                 scoreView.setText(String.valueOf(entry.getBestScore()));
                 listContainer.addView(row);
@@ -162,7 +162,7 @@ public class LeaderboardActivity extends AppCompatActivity {
         avatar.setBackgroundResource(R.drawable.ui2_avatar_border_selected);
         avatar.setPadding(dp(2), dp(2), dp(2), dp(2));
         avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        avatar.setImageResource(PilotAvatarRegistry.drawableFor(PilotAvatarRegistry.DEFAULT_AVATAR_ID));
+        avatar.setImageResource(PilotAvatarRegistry.drawableFor(entry.getAvatarId()));
 
         LinearLayout textWrap = new LinearLayout(this);
         textWrap.setOrientation(LinearLayout.VERTICAL);

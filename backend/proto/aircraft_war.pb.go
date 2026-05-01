@@ -301,6 +301,7 @@ type Player struct {
 	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
 	Status        PlayerStatus           `protobuf:"varint,2,opt,name=status,proto3,enum=hitsz.aircraftwar.backend.PlayerStatus" json:"status,omitempty"`
 	IsHost        bool                   `protobuf:"varint,3,opt,name=is_host,json=isHost,proto3" json:"is_host,omitempty"`
+	AvatarId      string                 `protobuf:"bytes,4,opt,name=avatar_id,json=avatarId,proto3" json:"avatar_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -354,6 +355,13 @@ func (x *Player) GetIsHost() bool {
 		return x.IsHost
 	}
 	return false
+}
+
+func (x *Player) GetAvatarId() string {
+	if x != nil {
+		return x.AvatarId
+	}
+	return ""
 }
 
 // 房间基础信息。双人房间通过 players 表达当前成员。
@@ -620,6 +628,7 @@ type LeaderboardEntry struct {
 	WinCount      int32                  `protobuf:"varint,3,opt,name=win_count,json=winCount,proto3" json:"win_count,omitempty"`
 	GameCount     int32                  `protobuf:"varint,4,opt,name=game_count,json=gameCount,proto3" json:"game_count,omitempty"`
 	UpdatedAt     int64                  `protobuf:"varint,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	AvatarId      string                 `protobuf:"bytes,6,opt,name=avatar_id,json=avatarId,proto3" json:"avatar_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -689,10 +698,18 @@ func (x *LeaderboardEntry) GetUpdatedAt() int64 {
 	return 0
 }
 
+func (x *LeaderboardEntry) GetAvatarId() string {
+	if x != nil {
+		return x.AvatarId
+	}
+	return ""
+}
+
 // HTTP: 创建房间。
 type CreateRoomRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	AvatarId      string                 `protobuf:"bytes,2,opt,name=avatar_id,json=avatarId,proto3" json:"avatar_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -730,6 +747,13 @@ func (*CreateRoomRequest) Descriptor() ([]byte, []int) {
 func (x *CreateRoomRequest) GetUsername() string {
 	if x != nil {
 		return x.Username
+	}
+	return ""
+}
+
+func (x *CreateRoomRequest) GetAvatarId() string {
+	if x != nil {
+		return x.AvatarId
 	}
 	return ""
 }
@@ -791,6 +815,7 @@ type JoinRoomRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	RoomId        string                 `protobuf:"bytes,1,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
 	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	AvatarId      string                 `protobuf:"bytes,3,opt,name=avatar_id,json=avatarId,proto3" json:"avatar_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -835,6 +860,13 @@ func (x *JoinRoomRequest) GetRoomId() string {
 func (x *JoinRoomRequest) GetUsername() string {
 	if x != nil {
 		return x.Username
+	}
+	return ""
+}
+
+func (x *JoinRoomRequest) GetAvatarId() string {
+	if x != nil {
+		return x.AvatarId
 	}
 	return ""
 }
@@ -1694,6 +1726,84 @@ func (x *ScoreBroadcast) GetUpdatedAt() int64 {
 	return 0
 }
 
+// WS: 服务端广播完整房间状态快照。
+// 用于房间成员变化、准备状态变化、开始、结束以及重连后状态恢复。
+type RoomStateBroadcast struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Room          *Room                  `protobuf:"bytes,1,opt,name=room,proto3" json:"room,omitempty"`
+	Scores        []*RoomPlayerScore     `protobuf:"bytes,2,rep,name=scores,proto3" json:"scores,omitempty"`
+	RoomFinished  bool                   `protobuf:"varint,3,opt,name=room_finished,json=roomFinished,proto3" json:"room_finished,omitempty"`
+	Result        *RoomResult            `protobuf:"bytes,4,opt,name=result,proto3" json:"result,omitempty"`
+	UpdatedAt     int64                  `protobuf:"varint,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RoomStateBroadcast) Reset() {
+	*x = RoomStateBroadcast{}
+	mi := &file_proto_aircraft_war_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RoomStateBroadcast) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RoomStateBroadcast) ProtoMessage() {}
+
+func (x *RoomStateBroadcast) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_aircraft_war_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RoomStateBroadcast.ProtoReflect.Descriptor instead.
+func (*RoomStateBroadcast) Descriptor() ([]byte, []int) {
+	return file_proto_aircraft_war_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *RoomStateBroadcast) GetRoom() *Room {
+	if x != nil {
+		return x.Room
+	}
+	return nil
+}
+
+func (x *RoomStateBroadcast) GetScores() []*RoomPlayerScore {
+	if x != nil {
+		return x.Scores
+	}
+	return nil
+}
+
+func (x *RoomStateBroadcast) GetRoomFinished() bool {
+	if x != nil {
+		return x.RoomFinished
+	}
+	return false
+}
+
+func (x *RoomStateBroadcast) GetResult() *RoomResult {
+	if x != nil {
+		return x.Result
+	}
+	return nil
+}
+
+func (x *RoomStateBroadcast) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return 0
+}
+
 // WS: 当两名玩家都结束后，服务端广播整局最终完成。
 type GameFinishedBroadcast struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -1706,7 +1816,7 @@ type GameFinishedBroadcast struct {
 
 func (x *GameFinishedBroadcast) Reset() {
 	*x = GameFinishedBroadcast{}
-	mi := &file_proto_aircraft_war_proto_msgTypes[23]
+	mi := &file_proto_aircraft_war_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1718,7 +1828,7 @@ func (x *GameFinishedBroadcast) String() string {
 func (*GameFinishedBroadcast) ProtoMessage() {}
 
 func (x *GameFinishedBroadcast) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_aircraft_war_proto_msgTypes[23]
+	mi := &file_proto_aircraft_war_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1731,7 +1841,7 @@ func (x *GameFinishedBroadcast) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameFinishedBroadcast.ProtoReflect.Descriptor instead.
 func (*GameFinishedBroadcast) Descriptor() ([]byte, []int) {
-	return file_proto_aircraft_war_proto_rawDescGZIP(), []int{23}
+	return file_proto_aircraft_war_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *GameFinishedBroadcast) GetRoomId() string {
@@ -1767,6 +1877,7 @@ type WsMessage struct {
 	//	*WsMessage_PlayerGameOverEvent
 	//	*WsMessage_ScoreBroadcast
 	//	*WsMessage_GameFinishedBroadcast
+	//	*WsMessage_RoomStateBroadcast
 	Payload       isWsMessage_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1774,7 +1885,7 @@ type WsMessage struct {
 
 func (x *WsMessage) Reset() {
 	*x = WsMessage{}
-	mi := &file_proto_aircraft_war_proto_msgTypes[24]
+	mi := &file_proto_aircraft_war_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1786,7 +1897,7 @@ func (x *WsMessage) String() string {
 func (*WsMessage) ProtoMessage() {}
 
 func (x *WsMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_aircraft_war_proto_msgTypes[24]
+	mi := &file_proto_aircraft_war_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1799,7 +1910,7 @@ func (x *WsMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WsMessage.ProtoReflect.Descriptor instead.
 func (*WsMessage) Descriptor() ([]byte, []int) {
-	return file_proto_aircraft_war_proto_rawDescGZIP(), []int{24}
+	return file_proto_aircraft_war_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *WsMessage) GetPayload() isWsMessage_Payload {
@@ -1854,6 +1965,15 @@ func (x *WsMessage) GetGameFinishedBroadcast() *GameFinishedBroadcast {
 	return nil
 }
 
+func (x *WsMessage) GetRoomStateBroadcast() *RoomStateBroadcast {
+	if x != nil {
+		if x, ok := x.Payload.(*WsMessage_RoomStateBroadcast); ok {
+			return x.RoomStateBroadcast
+		}
+	}
+	return nil
+}
+
 type isWsMessage_Payload interface {
 	isWsMessage_Payload()
 }
@@ -1878,6 +1998,10 @@ type WsMessage_GameFinishedBroadcast struct {
 	GameFinishedBroadcast *GameFinishedBroadcast `protobuf:"bytes,5,opt,name=game_finished_broadcast,json=gameFinishedBroadcast,proto3,oneof"`
 }
 
+type WsMessage_RoomStateBroadcast struct {
+	RoomStateBroadcast *RoomStateBroadcast `protobuf:"bytes,6,opt,name=room_state_broadcast,json=roomStateBroadcast,proto3,oneof"`
+}
+
 func (*WsMessage_PlayerHeartbeatEvent) isWsMessage_Payload() {}
 
 func (*WsMessage_PlayerDefeatEvent) isWsMessage_Payload() {}
@@ -1888,15 +2012,18 @@ func (*WsMessage_ScoreBroadcast) isWsMessage_Payload() {}
 
 func (*WsMessage_GameFinishedBroadcast) isWsMessage_Payload() {}
 
+func (*WsMessage_RoomStateBroadcast) isWsMessage_Payload() {}
+
 var File_proto_aircraft_war_proto protoreflect.FileDescriptor
 
 const file_proto_aircraft_war_proto_rawDesc = "" +
 	"\n" +
-	"\x18proto/aircraft_war.proto\x12\x19hitsz.aircraftwar.backend\"~\n" +
+	"\x18proto/aircraft_war.proto\x12\x19hitsz.aircraftwar.backend\"\x9b\x01\n" +
 	"\x06Player\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12?\n" +
 	"\x06status\x18\x02 \x01(\x0e2'.hitsz.aircraftwar.backend.PlayerStatusR\x06status\x12\x17\n" +
-	"\ais_host\x18\x03 \x01(\bR\x06isHost\"\x9b\x01\n" +
+	"\ais_host\x18\x03 \x01(\bR\x06isHost\x12\x1b\n" +
+	"\tavatar_id\x18\x04 \x01(\tR\bavatarId\"\x9b\x01\n" +
 	"\x04Room\x12\x17\n" +
 	"\aroom_id\x18\x01 \x01(\tR\x06roomId\x12=\n" +
 	"\x06status\x18\x02 \x01(\x0e2%.hitsz.aircraftwar.backend.RoomStatusR\x06status\x12;\n" +
@@ -1921,7 +2048,7 @@ const file_proto_aircraft_war_proto_rawDesc = "" +
 	"finishedAt\x12b\n" +
 	"\x16player_a_finish_reason\x18\t \x01(\x0e2-.hitsz.aircraftwar.backend.PlayerFinishReasonR\x13playerAFinishReason\x12b\n" +
 	"\x16player_b_finish_reason\x18\n" +
-	" \x01(\x0e2-.hitsz.aircraftwar.backend.PlayerFinishReasonR\x13playerBFinishReason\"\xa8\x01\n" +
+	" \x01(\x0e2-.hitsz.aircraftwar.backend.PlayerFinishReasonR\x13playerBFinishReason\"\xc5\x01\n" +
 	"\x10LeaderboardEntry\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1d\n" +
 	"\n" +
@@ -1930,15 +2057,18 @@ const file_proto_aircraft_war_proto_rawDesc = "" +
 	"\n" +
 	"game_count\x18\x04 \x01(\x05R\tgameCount\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x05 \x01(\x03R\tupdatedAt\"/\n" +
+	"updated_at\x18\x05 \x01(\x03R\tupdatedAt\x12\x1b\n" +
+	"\tavatar_id\x18\x06 \x01(\tR\bavatarId\"L\n" +
 	"\x11CreateRoomRequest\x12\x1a\n" +
-	"\busername\x18\x01 \x01(\tR\busername\"\x80\x01\n" +
+	"\busername\x18\x01 \x01(\tR\busername\x12\x1b\n" +
+	"\tavatar_id\x18\x02 \x01(\tR\bavatarId\"\x80\x01\n" +
 	"\x12CreateRoomResponse\x123\n" +
 	"\x04room\x18\x01 \x01(\v2\x1f.hitsz.aircraftwar.backend.RoomR\x04room\x125\n" +
-	"\x04self\x18\x02 \x01(\v2!.hitsz.aircraftwar.backend.PlayerR\x04self\"F\n" +
+	"\x04self\x18\x02 \x01(\v2!.hitsz.aircraftwar.backend.PlayerR\x04self\"c\n" +
 	"\x0fJoinRoomRequest\x12\x17\n" +
 	"\aroom_id\x18\x01 \x01(\tR\x06roomId\x12\x1a\n" +
-	"\busername\x18\x02 \x01(\tR\busername\"~\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12\x1b\n" +
+	"\tavatar_id\x18\x03 \x01(\tR\bavatarId\"~\n" +
 	"\x10JoinRoomResponse\x123\n" +
 	"\x04room\x18\x01 \x01(\v2\x1f.hitsz.aircraftwar.backend.RoomR\x04room\x125\n" +
 	"\x04self\x18\x02 \x01(\v2!.hitsz.aircraftwar.backend.PlayerR\x04self\"G\n" +
@@ -1994,17 +2124,25 @@ const file_proto_aircraft_war_proto_rawDesc = "" +
 	"\aroom_id\x18\x01 \x01(\tR\x06roomId\x12B\n" +
 	"\x06scores\x18\x02 \x03(\v2*.hitsz.aircraftwar.backend.RoomPlayerScoreR\x06scores\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x03 \x01(\x03R\tupdatedAt\"\x8b\x01\n" +
+	"updated_at\x18\x03 \x01(\x03R\tupdatedAt\"\x90\x02\n" +
+	"\x12RoomStateBroadcast\x123\n" +
+	"\x04room\x18\x01 \x01(\v2\x1f.hitsz.aircraftwar.backend.RoomR\x04room\x12B\n" +
+	"\x06scores\x18\x02 \x03(\v2*.hitsz.aircraftwar.backend.RoomPlayerScoreR\x06scores\x12#\n" +
+	"\rroom_finished\x18\x03 \x01(\bR\froomFinished\x12=\n" +
+	"\x06result\x18\x04 \x01(\v2%.hitsz.aircraftwar.backend.RoomResultR\x06result\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x05 \x01(\x03R\tupdatedAt\"\x8b\x01\n" +
 	"\x15GameFinishedBroadcast\x12\x17\n" +
 	"\aroom_id\x18\x01 \x01(\tR\x06roomId\x12\x1a\n" +
 	"\bfinished\x18\x02 \x01(\bR\bfinished\x12=\n" +
-	"\x06result\x18\x03 \x01(\v2%.hitsz.aircraftwar.backend.RoomResultR\x06result\"\x88\x04\n" +
+	"\x06result\x18\x03 \x01(\v2%.hitsz.aircraftwar.backend.RoomResultR\x06result\"\xeb\x04\n" +
 	"\tWsMessage\x12g\n" +
 	"\x16player_heartbeat_event\x18\x01 \x01(\v2/.hitsz.aircraftwar.backend.PlayerHeartbeatEventH\x00R\x14playerHeartbeatEvent\x12^\n" +
 	"\x13player_defeat_event\x18\x02 \x01(\v2,.hitsz.aircraftwar.backend.PlayerDefeatEventH\x00R\x11playerDefeatEvent\x12e\n" +
 	"\x16player_game_over_event\x18\x03 \x01(\v2..hitsz.aircraftwar.backend.PlayerGameOverEventH\x00R\x13playerGameOverEvent\x12T\n" +
 	"\x0fscore_broadcast\x18\x04 \x01(\v2).hitsz.aircraftwar.backend.ScoreBroadcastH\x00R\x0escoreBroadcast\x12j\n" +
-	"\x17game_finished_broadcast\x18\x05 \x01(\v20.hitsz.aircraftwar.backend.GameFinishedBroadcastH\x00R\x15gameFinishedBroadcastB\t\n" +
+	"\x17game_finished_broadcast\x18\x05 \x01(\v20.hitsz.aircraftwar.backend.GameFinishedBroadcastH\x00R\x15gameFinishedBroadcast\x12a\n" +
+	"\x14room_state_broadcast\x18\x06 \x01(\v2-.hitsz.aircraftwar.backend.RoomStateBroadcastH\x00R\x12roomStateBroadcastB\t\n" +
 	"\apayload*\xa2\x01\n" +
 	"\n" +
 	"RoomStatus\x12\x1b\n" +
@@ -2048,7 +2186,7 @@ func file_proto_aircraft_war_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_aircraft_war_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_proto_aircraft_war_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
+var file_proto_aircraft_war_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
 var file_proto_aircraft_war_proto_goTypes = []any{
 	(RoomStatus)(0),                // 0: hitsz.aircraftwar.backend.RoomStatus
 	(PlayerStatus)(0),              // 1: hitsz.aircraftwar.backend.PlayerStatus
@@ -2078,8 +2216,9 @@ var file_proto_aircraft_war_proto_goTypes = []any{
 	(*PlayerHeartbeatEvent)(nil),   // 25: hitsz.aircraftwar.backend.PlayerHeartbeatEvent
 	(*PlayerGameOverEvent)(nil),    // 26: hitsz.aircraftwar.backend.PlayerGameOverEvent
 	(*ScoreBroadcast)(nil),         // 27: hitsz.aircraftwar.backend.ScoreBroadcast
-	(*GameFinishedBroadcast)(nil),  // 28: hitsz.aircraftwar.backend.GameFinishedBroadcast
-	(*WsMessage)(nil),              // 29: hitsz.aircraftwar.backend.WsMessage
+	(*RoomStateBroadcast)(nil),     // 28: hitsz.aircraftwar.backend.RoomStateBroadcast
+	(*GameFinishedBroadcast)(nil),  // 29: hitsz.aircraftwar.backend.GameFinishedBroadcast
+	(*WsMessage)(nil),              // 30: hitsz.aircraftwar.backend.WsMessage
 }
 var file_proto_aircraft_war_proto_depIdxs = []int32{
 	1,  // 0: hitsz.aircraftwar.backend.Player.status:type_name -> hitsz.aircraftwar.backend.PlayerStatus
@@ -2103,17 +2242,21 @@ var file_proto_aircraft_war_proto_depIdxs = []int32{
 	9,  // 18: hitsz.aircraftwar.backend.GetLeaderboardResponse.entries:type_name -> hitsz.aircraftwar.backend.LeaderboardEntry
 	2,  // 19: hitsz.aircraftwar.backend.PlayerDefeatEvent.enemy_type:type_name -> hitsz.aircraftwar.backend.EnemyType
 	7,  // 20: hitsz.aircraftwar.backend.ScoreBroadcast.scores:type_name -> hitsz.aircraftwar.backend.RoomPlayerScore
-	8,  // 21: hitsz.aircraftwar.backend.GameFinishedBroadcast.result:type_name -> hitsz.aircraftwar.backend.RoomResult
-	25, // 22: hitsz.aircraftwar.backend.WsMessage.player_heartbeat_event:type_name -> hitsz.aircraftwar.backend.PlayerHeartbeatEvent
-	24, // 23: hitsz.aircraftwar.backend.WsMessage.player_defeat_event:type_name -> hitsz.aircraftwar.backend.PlayerDefeatEvent
-	26, // 24: hitsz.aircraftwar.backend.WsMessage.player_game_over_event:type_name -> hitsz.aircraftwar.backend.PlayerGameOverEvent
-	27, // 25: hitsz.aircraftwar.backend.WsMessage.score_broadcast:type_name -> hitsz.aircraftwar.backend.ScoreBroadcast
-	28, // 26: hitsz.aircraftwar.backend.WsMessage.game_finished_broadcast:type_name -> hitsz.aircraftwar.backend.GameFinishedBroadcast
-	27, // [27:27] is the sub-list for method output_type
-	27, // [27:27] is the sub-list for method input_type
-	27, // [27:27] is the sub-list for extension type_name
-	27, // [27:27] is the sub-list for extension extendee
-	0,  // [0:27] is the sub-list for field type_name
+	6,  // 21: hitsz.aircraftwar.backend.RoomStateBroadcast.room:type_name -> hitsz.aircraftwar.backend.Room
+	7,  // 22: hitsz.aircraftwar.backend.RoomStateBroadcast.scores:type_name -> hitsz.aircraftwar.backend.RoomPlayerScore
+	8,  // 23: hitsz.aircraftwar.backend.RoomStateBroadcast.result:type_name -> hitsz.aircraftwar.backend.RoomResult
+	8,  // 24: hitsz.aircraftwar.backend.GameFinishedBroadcast.result:type_name -> hitsz.aircraftwar.backend.RoomResult
+	25, // 25: hitsz.aircraftwar.backend.WsMessage.player_heartbeat_event:type_name -> hitsz.aircraftwar.backend.PlayerHeartbeatEvent
+	24, // 26: hitsz.aircraftwar.backend.WsMessage.player_defeat_event:type_name -> hitsz.aircraftwar.backend.PlayerDefeatEvent
+	26, // 27: hitsz.aircraftwar.backend.WsMessage.player_game_over_event:type_name -> hitsz.aircraftwar.backend.PlayerGameOverEvent
+	27, // 28: hitsz.aircraftwar.backend.WsMessage.score_broadcast:type_name -> hitsz.aircraftwar.backend.ScoreBroadcast
+	29, // 29: hitsz.aircraftwar.backend.WsMessage.game_finished_broadcast:type_name -> hitsz.aircraftwar.backend.GameFinishedBroadcast
+	28, // 30: hitsz.aircraftwar.backend.WsMessage.room_state_broadcast:type_name -> hitsz.aircraftwar.backend.RoomStateBroadcast
+	31, // [31:31] is the sub-list for method output_type
+	31, // [31:31] is the sub-list for method input_type
+	31, // [31:31] is the sub-list for extension type_name
+	31, // [31:31] is the sub-list for extension extendee
+	0,  // [0:31] is the sub-list for field type_name
 }
 
 func init() { file_proto_aircraft_war_proto_init() }
@@ -2121,12 +2264,13 @@ func file_proto_aircraft_war_proto_init() {
 	if File_proto_aircraft_war_proto != nil {
 		return
 	}
-	file_proto_aircraft_war_proto_msgTypes[24].OneofWrappers = []any{
+	file_proto_aircraft_war_proto_msgTypes[25].OneofWrappers = []any{
 		(*WsMessage_PlayerHeartbeatEvent)(nil),
 		(*WsMessage_PlayerDefeatEvent)(nil),
 		(*WsMessage_PlayerGameOverEvent)(nil),
 		(*WsMessage_ScoreBroadcast)(nil),
 		(*WsMessage_GameFinishedBroadcast)(nil),
+		(*WsMessage_RoomStateBroadcast)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -2134,7 +2278,7 @@ func file_proto_aircraft_war_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_aircraft_war_proto_rawDesc), len(file_proto_aircraft_war_proto_rawDesc)),
 			NumEnums:      5,
-			NumMessages:   25,
+			NumMessages:   26,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

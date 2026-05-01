@@ -2,8 +2,8 @@ package com.airwar.android.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -57,7 +57,7 @@ public class RoomActivity extends AppCompatActivity implements MultiplayerSessio
                 finishToMenu();
                 return;
             }
-            MultiplayerSession.getInstance().configure(savedBaseUrl, savedRoomId, savedUsername);
+            MultiplayerSession.getInstance().configure(savedBaseUrl, savedRoomId, savedUsername, LocalMultiplayerPrefs.getAvatarId(this));
         }
 
         TextView headerTitle = findViewById(R.id.room_header);
@@ -122,8 +122,9 @@ public class RoomActivity extends AppCompatActivity implements MultiplayerSessio
         AircraftWar.Room room = snapshot.room();
         AircraftWar.Player selfPlayer = findPlayer(room, snapshot.username());
         AircraftWar.Player opponentPlayer = findOpponent(room, snapshot.username());
+        AircraftWar.Player hostPlayer = findHost(room);
         roomCodeView.setText(snapshot.roomId().isEmpty() ? "-" : snapshot.roomId());
-        roomOwnerView.setText(snapshot.username().isEmpty() ? "-" : snapshot.username());
+        roomOwnerView.setText(hostPlayer == null ? "-" : hostPlayer.getUsername());
         roomStatusView.setText(readableStageTitle(snapshot, selfPlayer, opponentPlayer));
         roomStatusDetailView.setText(readableStageDetail(snapshot, selfPlayer, opponentPlayer));
         roomSelfStateView.setText(getString(
@@ -148,6 +149,8 @@ public class RoomActivity extends AppCompatActivity implements MultiplayerSessio
         syncButton.setEnabled(hasRoom);
         startButton.setText(isHost ? getString(R.string.menu_start) : getString(R.string.multiplayer_waiting_host_start));
         startButton.setEnabled(hasRoom && isHost && room != null && room.getStatus() == AircraftWar.RoomStatus.ROOM_STATUS_READY);
+        startButton.setAlpha(startButton.isEnabled() ? 1f : 0.6f);
+        startButton.setTextColor(ContextCompat.getColor(this, startButton.isEnabled() ? R.color.ui2_button_text : R.color.ui2_muted));
     }
 
     private AircraftWar.Player findPlayer(AircraftWar.Room room, String username) {
@@ -168,6 +171,18 @@ public class RoomActivity extends AppCompatActivity implements MultiplayerSessio
         }
         for (AircraftWar.Player player : room.getPlayersList()) {
             if (!player.getUsername().equals(username)) {
+                return player;
+            }
+        }
+        return null;
+    }
+
+    private AircraftWar.Player findHost(AircraftWar.Room room) {
+        if (room == null) {
+            return null;
+        }
+        for (AircraftWar.Player player : room.getPlayersList()) {
+            if (player.getIsHost()) {
                 return player;
             }
         }
@@ -249,28 +264,24 @@ public class RoomActivity extends AppCompatActivity implements MultiplayerSessio
     }
 
     private <T> void runRoomRequest(RoomCall<T> call, RoomResultHandler<T> onSuccess) {
-        setRoomActionEnabled(false);
+        readyButton.setEnabled(false);
+        syncButton.setEnabled(false);
+        startButton.setEnabled(false);
         ioExecutor.execute(() -> {
             try {
                 T result = call.call();
                 UiExecutor.run(this, () -> {
                     onSuccess.handle(result);
-                    setRoomActionEnabled(true);
+                    renderSnapshot(MultiplayerSession.getInstance().snapshot());
                     toast(getString(R.string.multiplayer_action_success));
                 });
             } catch (IOException e) {
                 UiExecutor.run(this, () -> {
-                    setRoomActionEnabled(true);
+                    renderSnapshot(MultiplayerSession.getInstance().snapshot());
                     toast(e.getMessage() == null ? "网络请求失败" : e.getMessage());
                 });
             }
         });
-    }
-
-    private void setRoomActionEnabled(boolean enabled) {
-        readyButton.setEnabled(enabled);
-        syncButton.setEnabled(enabled);
-        startButton.setEnabled(enabled && isHost(MultiplayerSession.getInstance().snapshot()));
     }
 
     private String readableRoomStatus(AircraftWar.RoomStatus status) {

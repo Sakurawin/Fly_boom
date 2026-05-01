@@ -31,6 +31,8 @@ public class GameActivity extends AppCompatActivity implements MultiplayerSessio
     private TextView hudScore;
     private TextView hudHp;
     private TextView hudRoomState;
+    private TextView hudMultiplayerSelfScore;
+    private TextView hudMultiplayerOpponentScore;
     private long gameStartMs;
     private int lastReportedScore;
     private int lastGameOverEvents;
@@ -55,6 +57,8 @@ public class GameActivity extends AppCompatActivity implements MultiplayerSessio
         hudScore = findViewById(R.id.hud_score);
         hudHp = findViewById(R.id.hud_hp);
         hudRoomState = findViewById(R.id.hud_room_state);
+        hudMultiplayerSelfScore = findViewById(R.id.hud_multiplayer_self_score);
+        hudMultiplayerOpponentScore = findViewById(R.id.hud_multiplayer_opponent_score);
 
         GameSurfaceView gameSurfaceView = findViewById(R.id.game_surface);
         gameSurfaceView.setDifficulty(difficulty);
@@ -116,6 +120,7 @@ public class GameActivity extends AppCompatActivity implements MultiplayerSessio
     @Override
     public void onSessionUpdated(MultiplayerSession.Snapshot snapshot) {
         updateConnectionHud(snapshot);
+        updateMultiplayerScoreHud(snapshot);
 
         // 如果服务端已经把当前玩家判定为结束，则不允许继续停留在战斗中，直接进入结束页。
         AircraftWar.RoomPlayerScore selfScore = findSelfScore(snapshot.scores(), snapshot.username());
@@ -145,6 +150,31 @@ public class GameActivity extends AppCompatActivity implements MultiplayerSessio
                 snapshot.roomId().isEmpty() ? "-" : snapshot.roomId(),
                 connection
         ));
+    }
+
+    private void updateMultiplayerScoreHud(MultiplayerSession.Snapshot snapshot) {
+        if (hudMultiplayerSelfScore == null || hudMultiplayerOpponentScore == null) {
+            return;
+        }
+        AircraftWar.RoomPlayerScore selfScore = findSelfScore(snapshot.scores(), snapshot.username());
+        AircraftWar.Player opponent = findOpponent(snapshot.room(), snapshot.username());
+        AircraftWar.RoomPlayerScore opponentScore = opponent == null ? null : findSelfScore(snapshot.scores(), opponent.getUsername());
+        String selfName = snapshot.username().isEmpty() ? getString(R.string.multiplayer_unknown_opponent) : snapshot.username();
+        String opponentName = opponent == null ? getString(R.string.multiplayer_unknown_opponent) : opponent.getUsername();
+        hudMultiplayerSelfScore.setText(getString(R.string.hud_multiplayer_score_line, selfName, selfScore == null ? 0 : selfScore.getScore()));
+        hudMultiplayerOpponentScore.setText(getString(R.string.hud_multiplayer_score_line, opponentName, opponentScore == null ? 0 : opponentScore.getScore()));
+    }
+
+    private AircraftWar.Player findOpponent(AircraftWar.Room room, String username) {
+        if (room == null) {
+            return null;
+        }
+        for (AircraftWar.Player player : room.getPlayersList()) {
+            if (!player.getUsername().equals(username)) {
+                return player;
+            }
+        }
+        return null;
     }
 
     private AircraftWar.RoomPlayerScore findSelfScore(List<AircraftWar.RoomPlayerScore> scores, String username) {

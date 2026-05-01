@@ -16,6 +16,9 @@
     <string name="hud_hp_value">生命: %1$d</string>
     <string name="hud_room_state_default">房间: 未连接</string>
     <string name="hud_room_state_value">房间 %1$s | 连接 %2$s</string>
+    <string name="hud_multiplayer_score_line">%1$s %2$d</string>
+    <string name="hud_multiplayer_self_default">我方 0</string>
+    <string name="hud_multiplayer_opponent_default">对手 0</string>
     <string name="game_over_title">任务结算</string>
     <string name="game_over_score_format">本局得分: %1$d</string>
     <string name="game_over_duration_format">存活时长: %1$d 秒</string>
@@ -44,6 +47,7 @@
     <string name="multiplayer_title">联机作战</string>
     <string name="multiplayer_base_url_hint">服务地址，例如 10.0.2.2:8080</string>
     <string name="multiplayer_username_hint">输入联机用户名</string>
+    <string name="multiplayer_avatar_title">选择联机头像</string>
     <string name="multiplayer_room_id_hint">输入房间号</string>
     <string name="multiplayer_create_room">创建房间</string>
     <string name="multiplayer_join_room">加入房间</string>
@@ -59,7 +63,7 @@
     <string name="multiplayer_room_finished">已结算</string>
     <string name="multiplayer_room_title">联机房间</string>
     <string name="multiplayer_room_code_label">房间号</string>
-    <string name="multiplayer_room_owner_label">当前玩家</string>
+    <string name="multiplayer_room_owner_label">房主</string>
     <string name="multiplayer_room_status_label">房间状态</string>
     <string name="multiplayer_room_players_label">房间成员</string>
     <string name="multiplayer_room_connection_label">连接状态</string>

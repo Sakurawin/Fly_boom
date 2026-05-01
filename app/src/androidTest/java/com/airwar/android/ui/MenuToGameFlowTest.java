@@ -31,9 +31,9 @@ public class MenuToGameFlowTest {
     @Before
     public void setUp() {
         Context context = ApplicationProvider.getApplicationContext();
-        LocalMultiplayerPrefs.saveBaseConfig(context, "http://10.0.2.2:8080", "alice");
+        LocalMultiplayerPrefs.saveBaseConfig(context, "http://10.0.2.2:8080", "alice", PilotAvatarRegistry.IDS[0]);
         LocalMultiplayerPrefs.saveRoomId(context, "123456");
-        MultiplayerSession.getInstance().configure("http://10.0.2.2:8080", "123456", "alice");
+        MultiplayerSession.getInstance().configure("http://10.0.2.2:8080", "123456", "alice", PilotAvatarRegistry.IDS[0]);
         MultiplayerSession.getInstance().applyRoomState(
                 AircraftWar.Room.newBuilder()
                         .setRoomId("123456")

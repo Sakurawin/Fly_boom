@@ -41,6 +41,7 @@ public final class MultiplayerSession {
             String baseUrl,
             String roomId,
             String username,
+            String avatarId,
             ConnectionState connectionState,
             String lastError,
             AircraftWar.Room room,
@@ -63,6 +64,7 @@ public final class MultiplayerSession {
     private String baseUrl = NetworkConfig.DEFAULT_BASE_URL;
     private String roomId = "";
     private String username = "";
+    private String avatarId = "";
     private ConnectionState connectionState = ConnectionState.DISCONNECTED;
     private String lastError = "";
     private AircraftWar.Room room = AircraftWar.Room.getDefaultInstance();
@@ -81,11 +83,12 @@ public final class MultiplayerSession {
     }
 
     // 进入房间前先写入联机会话的基础身份信息，后续 HTTP 和 WS 都基于这一份配置工作。
-    public void configure(String baseUrl, String roomId, String username) {
+    public void configure(String baseUrl, String roomId, String username, String avatarId) {
         synchronized (stateLock) {
             this.baseUrl = NetworkConfig.normalizeBaseUrl(baseUrl);
             this.roomId = roomId == null ? "" : roomId;
             this.username = username == null ? "" : username;
+            this.avatarId = avatarId == null || avatarId.isEmpty() ? "" : avatarId;
             this.lastError = "";
         }
         notifyListeners();
@@ -114,7 +117,7 @@ public final class MultiplayerSession {
 
     public Snapshot snapshot() {
         synchronized (stateLock) {
-            return new Snapshot(baseUrl, roomId, username, connectionState, lastError, room, List.copyOf(scores), roomFinished, result);
+            return new Snapshot(baseUrl, roomId, username, avatarId, connectionState, lastError, room, List.copyOf(scores), roomFinished, result);
         }
     }
 
@@ -158,6 +161,7 @@ public final class MultiplayerSession {
             roomId = "";
             connectionState = ConnectionState.DISCONNECTED;
             lastError = "";
+            avatarId = "";
             room = AircraftWar.Room.getDefaultInstance();
             scores = List.of();
             roomFinished = false;
@@ -292,6 +296,15 @@ public final class MultiplayerSession {
                     // 比分广播可以在房间未整体结束时持续更新，即使当前玩家已经掉线结束。
                     AircraftWar.ScoreBroadcast broadcast = message.getScoreBroadcast();
                     scores = List.copyOf(broadcast.getScoresList());
+                }
+                case ROOM_STATE_BROADCAST -> {
+                    AircraftWar.RoomStateBroadcast broadcast = message.getRoomStateBroadcast();
+                    room = broadcast.getRoom();
+                    scores = List.copyOf(broadcast.getScoresList());
+                    roomFinished = broadcast.getRoomFinished();
+                    if (broadcast.hasResult()) {
+                        result = broadcast.getResult();
+                    }
                 }
                 case GAME_FINISHED_BROADCAST -> {
                     // 房间最终完成后保存结果，供结束页和排行榜跳转使用。

@@ -2,9 +2,11 @@ package com.airwar.android.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.widget.EditText;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,6 +44,8 @@ public class MenuActivity extends AppCompatActivity {
     private EditText roomIdInput;
     private Button createRoomButton;
     private Button joinRoomButton;
+    private LinearLayout avatarContainer;
+    private String selectedAvatarId = PilotAvatarRegistry.DEFAULT_AVATAR_ID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,10 +66,12 @@ public class MenuActivity extends AppCompatActivity {
         baseUrlInput = findViewById(R.id.input_base_url);
         usernameInput = findViewById(R.id.input_username);
         roomIdInput = findViewById(R.id.input_room_id);
+        avatarContainer = findViewById(R.id.menu_avatar_container);
         TextView headerTitle = findViewById(R.id.menu_header);
 
         headerTitle.setText(getString(R.string.menu_title));
         bindBottomNav();
+        buildAvatarSelector();
         bindSavedMultiplayerState();
 
         easyButton.setOnClickListener(v -> {
@@ -102,8 +108,46 @@ public class MenuActivity extends AppCompatActivity {
         baseUrlInput.setText(LocalMultiplayerPrefs.getBaseUrl(this));
         usernameInput.setText(LocalMultiplayerPrefs.getUsername(this));
         roomIdInput.setText(LocalMultiplayerPrefs.getRoomId(this));
+        selectedAvatarId = LocalMultiplayerPrefs.getAvatarId(this);
+        refreshAvatarSelection();
         MultiplayerSession.Snapshot snapshot = MultiplayerSession.getInstance().snapshot();
         updateRoomStatusText(snapshot.room(), normalizedRoomId(), normalizedUsername());
+    }
+
+    private void buildAvatarSelector() {
+        avatarContainer.removeAllViews();
+        for (String avatarId : PilotAvatarRegistry.IDS) {
+            ImageView imageView = new ImageView(this);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dp(52), dp(52));
+            params.setMarginEnd(dp(10));
+            imageView.setLayoutParams(params);
+            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            imageView.setBackgroundResource(R.drawable.ui2_avatar_border);
+            imageView.setImageResource(PilotAvatarRegistry.drawableFor(avatarId));
+            imageView.setTag(avatarId);
+            imageView.setPadding(dp(2), dp(2), dp(2), dp(2));
+            imageView.setOnClickListener(v -> {
+                selectedAvatarId = avatarId;
+                LocalMultiplayerPrefs.saveAvatarId(this, avatarId);
+                refreshAvatarSelection();
+            });
+            avatarContainer.addView(imageView);
+        }
+    }
+
+    private void refreshAvatarSelection() {
+        if (avatarContainer == null) {
+            return;
+        }
+        for (int i = 0; i < avatarContainer.getChildCount(); i++) {
+            ImageView imageView = (ImageView) avatarContainer.getChildAt(i);
+            String avatarId = String.valueOf(imageView.getTag());
+            imageView.setBackgroundResource(
+                    avatarId.equals(selectedAvatarId)
+                            ? R.drawable.ui2_avatar_border_selected
+                            : R.drawable.ui2_avatar_border
+            );
+        }
     }
 
     private void updateDifficultySelection(Button selected, Button otherOne, Button otherTwo, DifficultyLevel level) {
@@ -153,12 +197,12 @@ public class MenuActivity extends AppCompatActivity {
         if (!validateBaseUrl(baseUrl) || !validateUsername(username)) {
             return;
         }
-        LocalMultiplayerPrefs.saveBaseConfig(this, baseUrl, username);
+        LocalMultiplayerPrefs.saveBaseConfig(this, baseUrl, username, selectedAvatarId);
         setRoomEntryButtonsEnabled(false);
-        runRoomRequest(() -> multiplayerApi.createRoom(baseUrl, username), response -> {
+        runRoomRequest(() -> multiplayerApi.createRoom(baseUrl, username, selectedAvatarId), response -> {
             roomIdInput.setText(response.getRoom().getRoomId());
             LocalMultiplayerPrefs.saveRoomId(this, response.getRoom().getRoomId());
-            MultiplayerSession.getInstance().configure(baseUrl, response.getRoom().getRoomId(), username);
+            MultiplayerSession.getInstance().configure(baseUrl, response.getRoom().getRoomId(), username, selectedAvatarId);
             MultiplayerSession.getInstance().applyRoomState(response.getRoom(), java.util.List.of(), false, null);
             updateRoomStatusText(response.getRoom(), response.getRoom().getRoomId(), username);
             openRoomView();
@@ -172,11 +216,11 @@ public class MenuActivity extends AppCompatActivity {
         if (!validateBaseUrl(baseUrl) || !validateUsername(username) || !validateRoomId(roomId)) {
             return;
         }
-        LocalMultiplayerPrefs.saveBaseConfig(this, baseUrl, username);
+        LocalMultiplayerPrefs.saveBaseConfig(this, baseUrl, username, selectedAvatarId);
         LocalMultiplayerPrefs.saveRoomId(this, roomId);
         setRoomEntryButtonsEnabled(false);
-        runRoomRequest(() -> multiplayerApi.joinRoom(baseUrl, roomId, username), response -> {
-            MultiplayerSession.getInstance().configure(baseUrl, roomId, username);
+        runRoomRequest(() -> multiplayerApi.joinRoom(baseUrl, roomId, username, selectedAvatarId), response -> {
+            MultiplayerSession.getInstance().configure(baseUrl, roomId, username, selectedAvatarId);
             MultiplayerSession.getInstance().applyRoomState(response.getRoom(), java.util.List.of(), false, null);
             updateRoomStatusText(response.getRoom(), roomId, username);
             openRoomView();
@@ -281,6 +325,14 @@ public class MenuActivity extends AppCompatActivity {
 
     private void toast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    private int dp(int value) {
+        return (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP,
+                value,
+                getResources().getDisplayMetrics()
+        );
     }
 
     @FunctionalInterface

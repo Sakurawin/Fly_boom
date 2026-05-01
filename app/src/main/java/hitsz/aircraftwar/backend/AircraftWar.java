@@ -613,6 +613,18 @@ public final class AircraftWar {
      * @return The isHost.
      */
     boolean getIsHost();
+
+    /**
+     * <code>string avatar_id = 4;</code>
+     * @return The avatarId.
+     */
+    java.lang.String getAvatarId();
+    /**
+     * <code>string avatar_id = 4;</code>
+     * @return The bytes for avatarId.
+     */
+    com.google.protobuf.ByteString
+        getAvatarIdBytes();
   }
   /**
    * <pre>
@@ -628,6 +640,7 @@ public final class AircraftWar {
       PlayerOrBuilder {
     private Player() {
       username_ = "";
+      avatarId_ = "";
     }
     public static final int USERNAME_FIELD_NUMBER = 1;
     private java.lang.String username_;
@@ -742,6 +755,53 @@ public final class AircraftWar {
     private void clearIsHost() {
       
       isHost_ = false;
+    }
+
+    public static final int AVATAR_ID_FIELD_NUMBER = 4;
+    private java.lang.String avatarId_;
+    /**
+     * <code>string avatar_id = 4;</code>
+     * @return The avatarId.
+     */
+    @java.lang.Override
+    public java.lang.String getAvatarId() {
+      return avatarId_;
+    }
+    /**
+     * <code>string avatar_id = 4;</code>
+     * @return The bytes for avatarId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAvatarIdBytes() {
+      return com.google.protobuf.ByteString.copyFromUtf8(avatarId_);
+    }
+    /**
+     * <code>string avatar_id = 4;</code>
+     * @param value The avatarId to set.
+     */
+    private void setAvatarId(
+        java.lang.String value) {
+      value.getClass();
+  
+      avatarId_ = value;
+    }
+    /**
+     * <code>string avatar_id = 4;</code>
+     */
+    private void clearAvatarId() {
+      
+      avatarId_ = getDefaultInstance().getAvatarId();
+    }
+    /**
+     * <code>string avatar_id = 4;</code>
+     * @param value The bytes for avatarId to set.
+     */
+    private void setAvatarIdBytes(
+        com.google.protobuf.ByteString value) {
+      checkByteStringIsUtf8(value);
+      avatarId_ = value.toStringUtf8();
+      
     }
 
     public static hitsz.aircraftwar.backend.AircraftWar.Player parseFrom(
@@ -966,6 +1026,55 @@ public final class AircraftWar {
         return this;
       }
 
+      /**
+       * <code>string avatar_id = 4;</code>
+       * @return The avatarId.
+       */
+      @java.lang.Override
+      public java.lang.String getAvatarId() {
+        return instance.getAvatarId();
+      }
+      /**
+       * <code>string avatar_id = 4;</code>
+       * @return The bytes for avatarId.
+       */
+      @java.lang.Override
+      public com.google.protobuf.ByteString
+          getAvatarIdBytes() {
+        return instance.getAvatarIdBytes();
+      }
+      /**
+       * <code>string avatar_id = 4;</code>
+       * @param value The avatarId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAvatarId(
+          java.lang.String value) {
+        copyOnWrite();
+        instance.setAvatarId(value);
+        return this;
+      }
+      /**
+       * <code>string avatar_id = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAvatarId() {
+        copyOnWrite();
+        instance.clearAvatarId();
+        return this;
+      }
+      /**
+       * <code>string avatar_id = 4;</code>
+       * @param value The bytes for avatarId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAvatarIdBytes(
+          com.google.protobuf.ByteString value) {
+        copyOnWrite();
+        instance.setAvatarIdBytes(value);
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:hitsz.aircraftwar.backend.Player)
     }
     @java.lang.Override
@@ -985,10 +1094,11 @@ public final class AircraftWar {
               "username_",
               "status_",
               "isHost_",
+              "avatarId_",
             };
             java.lang.String info =
-                "\u0000\u0003\u0000\u0000\u0001\u0003\u0003\u0000\u0000\u0000\u0001\u0208\u0002\f" +
-                "\u0003\u0007";
+                "\u0000\u0004\u0000\u0000\u0001\u0004\u0004\u0000\u0000\u0000\u0001\u0208\u0002\f" +
+                "\u0003\u0007\u0004\u0208";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through
@@ -3435,6 +3545,18 @@ public final class AircraftWar {
      * @return The updatedAt.
      */
     long getUpdatedAt();
+
+    /**
+     * <code>string avatar_id = 6;</code>
+     * @return The avatarId.
+     */
+    java.lang.String getAvatarId();
+    /**
+     * <code>string avatar_id = 6;</code>
+     * @return The bytes for avatarId.
+     */
+    com.google.protobuf.ByteString
+        getAvatarIdBytes();
   }
   /**
    * <pre>
@@ -3450,6 +3572,7 @@ public final class AircraftWar {
       LeaderboardEntryOrBuilder {
     private LeaderboardEntry() {
       username_ = "";
+      avatarId_ = "";
     }
     public static final int USERNAME_FIELD_NUMBER = 1;
     private java.lang.String username_;
@@ -3600,6 +3723,53 @@ public final class AircraftWar {
     private void clearUpdatedAt() {
       
       updatedAt_ = 0L;
+    }
+
+    public static final int AVATAR_ID_FIELD_NUMBER = 6;
+    private java.lang.String avatarId_;
+    /**
+     * <code>string avatar_id = 6;</code>
+     * @return The avatarId.
+     */
+    @java.lang.Override
+    public java.lang.String getAvatarId() {
+      return avatarId_;
+    }
+    /**
+     * <code>string avatar_id = 6;</code>
+     * @return The bytes for avatarId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAvatarIdBytes() {
+      return com.google.protobuf.ByteString.copyFromUtf8(avatarId_);
+    }
+    /**
+     * <code>string avatar_id = 6;</code>
+     * @param value The avatarId to set.
+     */
+    private void setAvatarId(
+        java.lang.String value) {
+      value.getClass();
+  
+      avatarId_ = value;
+    }
+    /**
+     * <code>string avatar_id = 6;</code>
+     */
+    private void clearAvatarId() {
+      
+      avatarId_ = getDefaultInstance().getAvatarId();
+    }
+    /**
+     * <code>string avatar_id = 6;</code>
+     * @param value The bytes for avatarId to set.
+     */
+    private void setAvatarIdBytes(
+        com.google.protobuf.ByteString value) {
+      checkByteStringIsUtf8(value);
+      avatarId_ = value.toStringUtf8();
+      
     }
 
     public static hitsz.aircraftwar.backend.AircraftWar.LeaderboardEntry parseFrom(
@@ -3862,6 +4032,55 @@ public final class AircraftWar {
         return this;
       }
 
+      /**
+       * <code>string avatar_id = 6;</code>
+       * @return The avatarId.
+       */
+      @java.lang.Override
+      public java.lang.String getAvatarId() {
+        return instance.getAvatarId();
+      }
+      /**
+       * <code>string avatar_id = 6;</code>
+       * @return The bytes for avatarId.
+       */
+      @java.lang.Override
+      public com.google.protobuf.ByteString
+          getAvatarIdBytes() {
+        return instance.getAvatarIdBytes();
+      }
+      /**
+       * <code>string avatar_id = 6;</code>
+       * @param value The avatarId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAvatarId(
+          java.lang.String value) {
+        copyOnWrite();
+        instance.setAvatarId(value);
+        return this;
+      }
+      /**
+       * <code>string avatar_id = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAvatarId() {
+        copyOnWrite();
+        instance.clearAvatarId();
+        return this;
+      }
+      /**
+       * <code>string avatar_id = 6;</code>
+       * @param value The bytes for avatarId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAvatarIdBytes(
+          com.google.protobuf.ByteString value) {
+        copyOnWrite();
+        instance.setAvatarIdBytes(value);
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:hitsz.aircraftwar.backend.LeaderboardEntry)
     }
     @java.lang.Override
@@ -3883,10 +4102,11 @@ public final class AircraftWar {
               "winCount_",
               "gameCount_",
               "updatedAt_",
+              "avatarId_",
             };
             java.lang.String info =
-                "\u0000\u0005\u0000\u0000\u0001\u0005\u0005\u0000\u0000\u0000\u0001\u0208\u0002\u0004" +
-                "\u0003\u0004\u0004\u0004\u0005\u0002";
+                "\u0000\u0006\u0000\u0000\u0001\u0006\u0006\u0000\u0000\u0000\u0001\u0208\u0002\u0004" +
+                "\u0003\u0004\u0004\u0004\u0005\u0002\u0006\u0208";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through
@@ -3956,6 +4176,18 @@ public final class AircraftWar {
      */
     com.google.protobuf.ByteString
         getUsernameBytes();
+
+    /**
+     * <code>string avatar_id = 2;</code>
+     * @return The avatarId.
+     */
+    java.lang.String getAvatarId();
+    /**
+     * <code>string avatar_id = 2;</code>
+     * @return The bytes for avatarId.
+     */
+    com.google.protobuf.ByteString
+        getAvatarIdBytes();
   }
   /**
    * <pre>
@@ -3971,6 +4203,7 @@ public final class AircraftWar {
       CreateRoomRequestOrBuilder {
     private CreateRoomRequest() {
       username_ = "";
+      avatarId_ = "";
     }
     public static final int USERNAME_FIELD_NUMBER = 1;
     private java.lang.String username_;
@@ -4016,6 +4249,53 @@ public final class AircraftWar {
         com.google.protobuf.ByteString value) {
       checkByteStringIsUtf8(value);
       username_ = value.toStringUtf8();
+      
+    }
+
+    public static final int AVATAR_ID_FIELD_NUMBER = 2;
+    private java.lang.String avatarId_;
+    /**
+     * <code>string avatar_id = 2;</code>
+     * @return The avatarId.
+     */
+    @java.lang.Override
+    public java.lang.String getAvatarId() {
+      return avatarId_;
+    }
+    /**
+     * <code>string avatar_id = 2;</code>
+     * @return The bytes for avatarId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAvatarIdBytes() {
+      return com.google.protobuf.ByteString.copyFromUtf8(avatarId_);
+    }
+    /**
+     * <code>string avatar_id = 2;</code>
+     * @param value The avatarId to set.
+     */
+    private void setAvatarId(
+        java.lang.String value) {
+      value.getClass();
+  
+      avatarId_ = value;
+    }
+    /**
+     * <code>string avatar_id = 2;</code>
+     */
+    private void clearAvatarId() {
+      
+      avatarId_ = getDefaultInstance().getAvatarId();
+    }
+    /**
+     * <code>string avatar_id = 2;</code>
+     * @param value The bytes for avatarId to set.
+     */
+    private void setAvatarIdBytes(
+        com.google.protobuf.ByteString value) {
+      checkByteStringIsUtf8(value);
+      avatarId_ = value.toStringUtf8();
       
     }
 
@@ -4167,6 +4447,55 @@ public final class AircraftWar {
         return this;
       }
 
+      /**
+       * <code>string avatar_id = 2;</code>
+       * @return The avatarId.
+       */
+      @java.lang.Override
+      public java.lang.String getAvatarId() {
+        return instance.getAvatarId();
+      }
+      /**
+       * <code>string avatar_id = 2;</code>
+       * @return The bytes for avatarId.
+       */
+      @java.lang.Override
+      public com.google.protobuf.ByteString
+          getAvatarIdBytes() {
+        return instance.getAvatarIdBytes();
+      }
+      /**
+       * <code>string avatar_id = 2;</code>
+       * @param value The avatarId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAvatarId(
+          java.lang.String value) {
+        copyOnWrite();
+        instance.setAvatarId(value);
+        return this;
+      }
+      /**
+       * <code>string avatar_id = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAvatarId() {
+        copyOnWrite();
+        instance.clearAvatarId();
+        return this;
+      }
+      /**
+       * <code>string avatar_id = 2;</code>
+       * @param value The bytes for avatarId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAvatarIdBytes(
+          com.google.protobuf.ByteString value) {
+        copyOnWrite();
+        instance.setAvatarIdBytes(value);
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:hitsz.aircraftwar.backend.CreateRoomRequest)
     }
     @java.lang.Override
@@ -4184,9 +4513,11 @@ public final class AircraftWar {
         case BUILD_MESSAGE_INFO: {
             java.lang.Object[] objects = new java.lang.Object[] {
               "username_",
+              "avatarId_",
             };
             java.lang.String info =
-                "\u0000\u0001\u0000\u0000\u0001\u0001\u0001\u0000\u0000\u0000\u0001\u0208";
+                "\u0000\u0002\u0000\u0000\u0001\u0002\u0002\u0000\u0000\u0000\u0001\u0208\u0002\u0208" +
+                "";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through
@@ -4660,6 +4991,18 @@ public final class AircraftWar {
      */
     com.google.protobuf.ByteString
         getUsernameBytes();
+
+    /**
+     * <code>string avatar_id = 3;</code>
+     * @return The avatarId.
+     */
+    java.lang.String getAvatarId();
+    /**
+     * <code>string avatar_id = 3;</code>
+     * @return The bytes for avatarId.
+     */
+    com.google.protobuf.ByteString
+        getAvatarIdBytes();
   }
   /**
    * <pre>
@@ -4676,6 +5019,7 @@ public final class AircraftWar {
     private JoinRoomRequest() {
       roomId_ = "";
       username_ = "";
+      avatarId_ = "";
     }
     public static final int ROOM_ID_FIELD_NUMBER = 1;
     private java.lang.String roomId_;
@@ -4768,6 +5112,53 @@ public final class AircraftWar {
         com.google.protobuf.ByteString value) {
       checkByteStringIsUtf8(value);
       username_ = value.toStringUtf8();
+      
+    }
+
+    public static final int AVATAR_ID_FIELD_NUMBER = 3;
+    private java.lang.String avatarId_;
+    /**
+     * <code>string avatar_id = 3;</code>
+     * @return The avatarId.
+     */
+    @java.lang.Override
+    public java.lang.String getAvatarId() {
+      return avatarId_;
+    }
+    /**
+     * <code>string avatar_id = 3;</code>
+     * @return The bytes for avatarId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAvatarIdBytes() {
+      return com.google.protobuf.ByteString.copyFromUtf8(avatarId_);
+    }
+    /**
+     * <code>string avatar_id = 3;</code>
+     * @param value The avatarId to set.
+     */
+    private void setAvatarId(
+        java.lang.String value) {
+      value.getClass();
+  
+      avatarId_ = value;
+    }
+    /**
+     * <code>string avatar_id = 3;</code>
+     */
+    private void clearAvatarId() {
+      
+      avatarId_ = getDefaultInstance().getAvatarId();
+    }
+    /**
+     * <code>string avatar_id = 3;</code>
+     * @param value The bytes for avatarId to set.
+     */
+    private void setAvatarIdBytes(
+        com.google.protobuf.ByteString value) {
+      checkByteStringIsUtf8(value);
+      avatarId_ = value.toStringUtf8();
       
     }
 
@@ -4968,6 +5359,55 @@ public final class AircraftWar {
         return this;
       }
 
+      /**
+       * <code>string avatar_id = 3;</code>
+       * @return The avatarId.
+       */
+      @java.lang.Override
+      public java.lang.String getAvatarId() {
+        return instance.getAvatarId();
+      }
+      /**
+       * <code>string avatar_id = 3;</code>
+       * @return The bytes for avatarId.
+       */
+      @java.lang.Override
+      public com.google.protobuf.ByteString
+          getAvatarIdBytes() {
+        return instance.getAvatarIdBytes();
+      }
+      /**
+       * <code>string avatar_id = 3;</code>
+       * @param value The avatarId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAvatarId(
+          java.lang.String value) {
+        copyOnWrite();
+        instance.setAvatarId(value);
+        return this;
+      }
+      /**
+       * <code>string avatar_id = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAvatarId() {
+        copyOnWrite();
+        instance.clearAvatarId();
+        return this;
+      }
+      /**
+       * <code>string avatar_id = 3;</code>
+       * @param value The bytes for avatarId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAvatarIdBytes(
+          com.google.protobuf.ByteString value) {
+        copyOnWrite();
+        instance.setAvatarIdBytes(value);
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:hitsz.aircraftwar.backend.JoinRoomRequest)
     }
     @java.lang.Override
@@ -4986,10 +5426,11 @@ public final class AircraftWar {
             java.lang.Object[] objects = new java.lang.Object[] {
               "roomId_",
               "username_",
+              "avatarId_",
             };
             java.lang.String info =
-                "\u0000\u0002\u0000\u0000\u0001\u0002\u0002\u0000\u0000\u0000\u0001\u0208\u0002\u0208" +
-                "";
+                "\u0000\u0003\u0000\u0000\u0001\u0003\u0003\u0000\u0000\u0000\u0001\u0208\u0002\u0208" +
+                "\u0003\u0208";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through
@@ -12050,6 +12491,734 @@ public final class AircraftWar {
     }
   }
 
+  public interface RoomStateBroadcastOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:hitsz.aircraftwar.backend.RoomStateBroadcast)
+      com.google.protobuf.MessageLiteOrBuilder {
+
+    /**
+     * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+     * @return Whether the room field is set.
+     */
+    boolean hasRoom();
+    /**
+     * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+     * @return The room.
+     */
+    hitsz.aircraftwar.backend.AircraftWar.Room getRoom();
+
+    /**
+     * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+     */
+    java.util.List<hitsz.aircraftwar.backend.AircraftWar.RoomPlayerScore> 
+        getScoresList();
+    /**
+     * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+     */
+    hitsz.aircraftwar.backend.AircraftWar.RoomPlayerScore getScores(int index);
+    /**
+     * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+     */
+    int getScoresCount();
+
+    /**
+     * <code>bool room_finished = 3;</code>
+     * @return The roomFinished.
+     */
+    boolean getRoomFinished();
+
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomResult result = 4;</code>
+     * @return Whether the result field is set.
+     */
+    boolean hasResult();
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomResult result = 4;</code>
+     * @return The result.
+     */
+    hitsz.aircraftwar.backend.AircraftWar.RoomResult getResult();
+
+    /**
+     * <code>int64 updated_at = 5;</code>
+     * @return The updatedAt.
+     */
+    long getUpdatedAt();
+  }
+  /**
+   * Protobuf type {@code hitsz.aircraftwar.backend.RoomStateBroadcast}
+   */
+  public  static final class RoomStateBroadcast extends
+      com.google.protobuf.GeneratedMessageLite<
+          RoomStateBroadcast, RoomStateBroadcast.Builder> implements
+      // @@protoc_insertion_point(message_implements:hitsz.aircraftwar.backend.RoomStateBroadcast)
+      RoomStateBroadcastOrBuilder {
+    private RoomStateBroadcast() {
+      scores_ = emptyProtobufList();
+    }
+    public static final int ROOM_FIELD_NUMBER = 1;
+    private hitsz.aircraftwar.backend.AircraftWar.Room room_;
+    /**
+     * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+     */
+    @java.lang.Override
+    public boolean hasRoom() {
+      return room_ != null;
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+     */
+    @java.lang.Override
+    public hitsz.aircraftwar.backend.AircraftWar.Room getRoom() {
+      return room_ == null ? hitsz.aircraftwar.backend.AircraftWar.Room.getDefaultInstance() : room_;
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+     */
+    private void setRoom(hitsz.aircraftwar.backend.AircraftWar.Room value) {
+      value.getClass();
+  room_ = value;
+      
+      }
+    /**
+     * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+     */
+    @java.lang.SuppressWarnings({"ReferenceEquality"})
+    private void mergeRoom(hitsz.aircraftwar.backend.AircraftWar.Room value) {
+      value.getClass();
+  if (room_ != null &&
+          room_ != hitsz.aircraftwar.backend.AircraftWar.Room.getDefaultInstance()) {
+        room_ =
+          hitsz.aircraftwar.backend.AircraftWar.Room.newBuilder(room_).mergeFrom(value).buildPartial();
+      } else {
+        room_ = value;
+      }
+      
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+     */
+    private void clearRoom() {  room_ = null;
+      
+    }
+
+    public static final int SCORES_FIELD_NUMBER = 2;
+    private com.google.protobuf.Internal.ProtobufList<hitsz.aircraftwar.backend.AircraftWar.RoomPlayerScore> scores_;
+    /**
+     * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+     */
+    @java.lang.Override
+    public java.util.List<hitsz.aircraftwar.backend.AircraftWar.RoomPlayerScore> getScoresList() {
+      return scores_;
+    }
+    /**
+     * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+     */
+    public java.util.List<? extends hitsz.aircraftwar.backend.AircraftWar.RoomPlayerScoreOrBuilder> 
+        getScoresOrBuilderList() {
+      return scores_;
+    }
+    /**
+     * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+     */
+    @java.lang.Override
+    public int getScoresCount() {
+      return scores_.size();
+    }
+    /**
+     * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+     */
+    @java.lang.Override
+    public hitsz.aircraftwar.backend.AircraftWar.RoomPlayerScore getScores(int index) {
+      return scores_.get(index);
+    }
+    /**
+     * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+     */
+    public hitsz.aircraftwar.backend.AircraftWar.RoomPlayerScoreOrBuilder getScoresOrBuilder(
+        int index) {
+      return scores_.get(index);
+    }
+    private void ensureScoresIsMutable() {
+      com.google.protobuf.Internal.ProtobufList<hitsz.aircraftwar.backend.AircraftWar.RoomPlayerScore> tmp = scores_;
+      if (!tmp.isModifiable()) {
+        scores_ =
+            com.google.protobuf.GeneratedMessageLite.mutableCopy(tmp);
+       }
+    }
+
+    /**
+     * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+     */
+    private void setScores(
+        int index, hitsz.aircraftwar.backend.AircraftWar.RoomPlayerScore value) {
+      value.getClass();
+  ensureScoresIsMutable();
+      scores_.set(index, value);
+    }
+    /**
+     * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+     */
+    private void addScores(hitsz.aircraftwar.backend.AircraftWar.RoomPlayerScore value) {
+      value.getClass();
+  ensureScoresIsMutable();
+      scores_.add(value);
+    }
+    /**
+     * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+     */
+    private void addScores(
+        int index, hitsz.aircraftwar.backend.AircraftWar.RoomPlayerScore value) {
+      value.getClass();
+  ensureScoresIsMutable();
+      scores_.add(index, value);
+    }
+    /**
+     * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+     */
+    private void addAllScores(
+        java.lang.Iterable<? extends hitsz.aircraftwar.backend.AircraftWar.RoomPlayerScore> values) {
+      ensureScoresIsMutable();
+      com.google.protobuf.AbstractMessageLite.addAll(
+          values, scores_);
+    }
+    /**
+     * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+     */
+    private void clearScores() {
+      scores_ = emptyProtobufList();
+    }
+    /**
+     * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+     */
+    private void removeScores(int index) {
+      ensureScoresIsMutable();
+      scores_.remove(index);
+    }
+
+    public static final int ROOM_FINISHED_FIELD_NUMBER = 3;
+    private boolean roomFinished_;
+    /**
+     * <code>bool room_finished = 3;</code>
+     * @return The roomFinished.
+     */
+    @java.lang.Override
+    public boolean getRoomFinished() {
+      return roomFinished_;
+    }
+    /**
+     * <code>bool room_finished = 3;</code>
+     * @param value The roomFinished to set.
+     */
+    private void setRoomFinished(boolean value) {
+      
+      roomFinished_ = value;
+    }
+    /**
+     * <code>bool room_finished = 3;</code>
+     */
+    private void clearRoomFinished() {
+      
+      roomFinished_ = false;
+    }
+
+    public static final int RESULT_FIELD_NUMBER = 4;
+    private hitsz.aircraftwar.backend.AircraftWar.RoomResult result_;
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomResult result = 4;</code>
+     */
+    @java.lang.Override
+    public boolean hasResult() {
+      return result_ != null;
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomResult result = 4;</code>
+     */
+    @java.lang.Override
+    public hitsz.aircraftwar.backend.AircraftWar.RoomResult getResult() {
+      return result_ == null ? hitsz.aircraftwar.backend.AircraftWar.RoomResult.getDefaultInstance() : result_;
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomResult result = 4;</code>
+     */
+    private void setResult(hitsz.aircraftwar.backend.AircraftWar.RoomResult value) {
+      value.getClass();
+  result_ = value;
+      
+      }
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomResult result = 4;</code>
+     */
+    @java.lang.SuppressWarnings({"ReferenceEquality"})
+    private void mergeResult(hitsz.aircraftwar.backend.AircraftWar.RoomResult value) {
+      value.getClass();
+  if (result_ != null &&
+          result_ != hitsz.aircraftwar.backend.AircraftWar.RoomResult.getDefaultInstance()) {
+        result_ =
+          hitsz.aircraftwar.backend.AircraftWar.RoomResult.newBuilder(result_).mergeFrom(value).buildPartial();
+      } else {
+        result_ = value;
+      }
+      
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomResult result = 4;</code>
+     */
+    private void clearResult() {  result_ = null;
+      
+    }
+
+    public static final int UPDATED_AT_FIELD_NUMBER = 5;
+    private long updatedAt_;
+    /**
+     * <code>int64 updated_at = 5;</code>
+     * @return The updatedAt.
+     */
+    @java.lang.Override
+    public long getUpdatedAt() {
+      return updatedAt_;
+    }
+    /**
+     * <code>int64 updated_at = 5;</code>
+     * @param value The updatedAt to set.
+     */
+    private void setUpdatedAt(long value) {
+      
+      updatedAt_ = value;
+    }
+    /**
+     * <code>int64 updated_at = 5;</code>
+     */
+    private void clearUpdatedAt() {
+      
+      updatedAt_ = 0L;
+    }
+
+    public static hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, data);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, data, extensionRegistry);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, data);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, data, extensionRegistry);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, data);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, data, extensionRegistry);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, input);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, input, extensionRegistry);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return parseDelimitedFrom(DEFAULT_INSTANCE, input);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return parseDelimitedFrom(DEFAULT_INSTANCE, input, extensionRegistry);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, input);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() {
+      return (Builder) DEFAULT_INSTANCE.createBuilder();
+    }
+    public static Builder newBuilder(hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast prototype) {
+      return (Builder) DEFAULT_INSTANCE.createBuilder(prototype);
+    }
+
+    /**
+     * Protobuf type {@code hitsz.aircraftwar.backend.RoomStateBroadcast}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageLite.Builder<
+          hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast, Builder> implements
+        // @@protoc_insertion_point(builder_implements:hitsz.aircraftwar.backend.RoomStateBroadcast)
+        hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcastOrBuilder {
+      // Construct using hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast.newBuilder()
+      private Builder() {
+        super(DEFAULT_INSTANCE);
+      }
+
+
+      /**
+       * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+       */
+      @java.lang.Override
+      public boolean hasRoom() {
+        return instance.hasRoom();
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+       */
+      @java.lang.Override
+      public hitsz.aircraftwar.backend.AircraftWar.Room getRoom() {
+        return instance.getRoom();
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+       */
+      public Builder setRoom(hitsz.aircraftwar.backend.AircraftWar.Room value) {
+        copyOnWrite();
+        instance.setRoom(value);
+        return this;
+        }
+      /**
+       * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+       */
+      public Builder setRoom(
+          hitsz.aircraftwar.backend.AircraftWar.Room.Builder builderForValue) {
+        copyOnWrite();
+        instance.setRoom(builderForValue.build());
+        return this;
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+       */
+      public Builder mergeRoom(hitsz.aircraftwar.backend.AircraftWar.Room value) {
+        copyOnWrite();
+        instance.mergeRoom(value);
+        return this;
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+       */
+      public Builder clearRoom() {  copyOnWrite();
+        instance.clearRoom();
+        return this;
+      }
+
+      /**
+       * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+       */
+      @java.lang.Override
+      public java.util.List<hitsz.aircraftwar.backend.AircraftWar.RoomPlayerScore> getScoresList() {
+        return java.util.Collections.unmodifiableList(
+            instance.getScoresList());
+      }
+      /**
+       * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+       */
+      @java.lang.Override
+      public int getScoresCount() {
+        return instance.getScoresCount();
+      }/**
+       * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+       */
+      @java.lang.Override
+      public hitsz.aircraftwar.backend.AircraftWar.RoomPlayerScore getScores(int index) {
+        return instance.getScores(index);
+      }
+      /**
+       * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+       */
+      public Builder setScores(
+          int index, hitsz.aircraftwar.backend.AircraftWar.RoomPlayerScore value) {
+        copyOnWrite();
+        instance.setScores(index, value);
+        return this;
+      }
+      /**
+       * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+       */
+      public Builder setScores(
+          int index, hitsz.aircraftwar.backend.AircraftWar.RoomPlayerScore.Builder builderForValue) {
+        copyOnWrite();
+        instance.setScores(index,
+            builderForValue.build());
+        return this;
+      }
+      /**
+       * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+       */
+      public Builder addScores(hitsz.aircraftwar.backend.AircraftWar.RoomPlayerScore value) {
+        copyOnWrite();
+        instance.addScores(value);
+        return this;
+      }
+      /**
+       * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+       */
+      public Builder addScores(
+          int index, hitsz.aircraftwar.backend.AircraftWar.RoomPlayerScore value) {
+        copyOnWrite();
+        instance.addScores(index, value);
+        return this;
+      }
+      /**
+       * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+       */
+      public Builder addScores(
+          hitsz.aircraftwar.backend.AircraftWar.RoomPlayerScore.Builder builderForValue) {
+        copyOnWrite();
+        instance.addScores(builderForValue.build());
+        return this;
+      }
+      /**
+       * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+       */
+      public Builder addScores(
+          int index, hitsz.aircraftwar.backend.AircraftWar.RoomPlayerScore.Builder builderForValue) {
+        copyOnWrite();
+        instance.addScores(index,
+            builderForValue.build());
+        return this;
+      }
+      /**
+       * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+       */
+      public Builder addAllScores(
+          java.lang.Iterable<? extends hitsz.aircraftwar.backend.AircraftWar.RoomPlayerScore> values) {
+        copyOnWrite();
+        instance.addAllScores(values);
+        return this;
+      }
+      /**
+       * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+       */
+      public Builder clearScores() {
+        copyOnWrite();
+        instance.clearScores();
+        return this;
+      }
+      /**
+       * <code>repeated .hitsz.aircraftwar.backend.RoomPlayerScore scores = 2;</code>
+       */
+      public Builder removeScores(int index) {
+        copyOnWrite();
+        instance.removeScores(index);
+        return this;
+      }
+
+      /**
+       * <code>bool room_finished = 3;</code>
+       * @return The roomFinished.
+       */
+      @java.lang.Override
+      public boolean getRoomFinished() {
+        return instance.getRoomFinished();
+      }
+      /**
+       * <code>bool room_finished = 3;</code>
+       * @param value The roomFinished to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRoomFinished(boolean value) {
+        copyOnWrite();
+        instance.setRoomFinished(value);
+        return this;
+      }
+      /**
+       * <code>bool room_finished = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearRoomFinished() {
+        copyOnWrite();
+        instance.clearRoomFinished();
+        return this;
+      }
+
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomResult result = 4;</code>
+       */
+      @java.lang.Override
+      public boolean hasResult() {
+        return instance.hasResult();
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomResult result = 4;</code>
+       */
+      @java.lang.Override
+      public hitsz.aircraftwar.backend.AircraftWar.RoomResult getResult() {
+        return instance.getResult();
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomResult result = 4;</code>
+       */
+      public Builder setResult(hitsz.aircraftwar.backend.AircraftWar.RoomResult value) {
+        copyOnWrite();
+        instance.setResult(value);
+        return this;
+        }
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomResult result = 4;</code>
+       */
+      public Builder setResult(
+          hitsz.aircraftwar.backend.AircraftWar.RoomResult.Builder builderForValue) {
+        copyOnWrite();
+        instance.setResult(builderForValue.build());
+        return this;
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomResult result = 4;</code>
+       */
+      public Builder mergeResult(hitsz.aircraftwar.backend.AircraftWar.RoomResult value) {
+        copyOnWrite();
+        instance.mergeResult(value);
+        return this;
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomResult result = 4;</code>
+       */
+      public Builder clearResult() {  copyOnWrite();
+        instance.clearResult();
+        return this;
+      }
+
+      /**
+       * <code>int64 updated_at = 5;</code>
+       * @return The updatedAt.
+       */
+      @java.lang.Override
+      public long getUpdatedAt() {
+        return instance.getUpdatedAt();
+      }
+      /**
+       * <code>int64 updated_at = 5;</code>
+       * @param value The updatedAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUpdatedAt(long value) {
+        copyOnWrite();
+        instance.setUpdatedAt(value);
+        return this;
+      }
+      /**
+       * <code>int64 updated_at = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearUpdatedAt() {
+        copyOnWrite();
+        instance.clearUpdatedAt();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:hitsz.aircraftwar.backend.RoomStateBroadcast)
+    }
+    @java.lang.Override
+    @java.lang.SuppressWarnings({"unchecked", "fallthrough"})
+    protected final java.lang.Object dynamicMethod(
+        com.google.protobuf.GeneratedMessageLite.MethodToInvoke method,
+        java.lang.Object arg0, java.lang.Object arg1) {
+      switch (method) {
+        case NEW_MUTABLE_INSTANCE: {
+          return new hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast();
+        }
+        case NEW_BUILDER: {
+          return new Builder();
+        }
+        case BUILD_MESSAGE_INFO: {
+            java.lang.Object[] objects = new java.lang.Object[] {
+              "room_",
+              "scores_",
+              hitsz.aircraftwar.backend.AircraftWar.RoomPlayerScore.class,
+              "roomFinished_",
+              "result_",
+              "updatedAt_",
+            };
+            java.lang.String info =
+                "\u0000\u0005\u0000\u0000\u0001\u0005\u0005\u0000\u0001\u0000\u0001\t\u0002\u001b" +
+                "\u0003\u0007\u0004\t\u0005\u0002";
+            return newMessageInfo(DEFAULT_INSTANCE, info, objects);
+        }
+        // fall through
+        case GET_DEFAULT_INSTANCE: {
+          return DEFAULT_INSTANCE;
+        }
+        case GET_PARSER: {
+          com.google.protobuf.Parser<hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast> parser = PARSER;
+          if (parser == null) {
+            synchronized (hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast.class) {
+              parser = PARSER;
+              if (parser == null) {
+                parser =
+                    new DefaultInstanceBasedParser<hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast>(
+                        DEFAULT_INSTANCE);
+                PARSER = parser;
+              }
+            }
+          }
+          return parser;
+      }
+      case GET_MEMOIZED_IS_INITIALIZED: {
+        return (byte) 1;
+      }
+      case SET_MEMOIZED_IS_INITIALIZED: {
+        return null;
+      }
+      }
+      throw new UnsupportedOperationException();
+    }
+
+
+    // @@protoc_insertion_point(class_scope:hitsz.aircraftwar.backend.RoomStateBroadcast)
+    private static final hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast DEFAULT_INSTANCE;
+    static {
+      RoomStateBroadcast defaultInstance = new RoomStateBroadcast();
+      // New instances are implicitly immutable so no need to make
+      // immutable.
+      DEFAULT_INSTANCE = defaultInstance;
+      com.google.protobuf.GeneratedMessageLite.registerDefaultInstance(
+        RoomStateBroadcast.class, defaultInstance);
+    }
+
+    public static hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static volatile com.google.protobuf.Parser<RoomStateBroadcast> PARSER;
+
+    public static com.google.protobuf.Parser<RoomStateBroadcast> parser() {
+      return DEFAULT_INSTANCE.getParserForType();
+    }
+  }
+
   public interface GameFinishedBroadcastOrBuilder extends
       // @@protoc_insertion_point(interface_extends:hitsz.aircraftwar.backend.GameFinishedBroadcast)
       com.google.protobuf.MessageLiteOrBuilder {
@@ -12576,6 +13745,17 @@ public final class AircraftWar {
      */
     hitsz.aircraftwar.backend.AircraftWar.GameFinishedBroadcast getGameFinishedBroadcast();
 
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomStateBroadcast room_state_broadcast = 6;</code>
+     * @return Whether the roomStateBroadcast field is set.
+     */
+    boolean hasRoomStateBroadcast();
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomStateBroadcast room_state_broadcast = 6;</code>
+     * @return The roomStateBroadcast.
+     */
+    hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast getRoomStateBroadcast();
+
     public hitsz.aircraftwar.backend.AircraftWar.WsMessage.PayloadCase getPayloadCase();
   }
   /**
@@ -12602,6 +13782,7 @@ public final class AircraftWar {
       PLAYER_GAME_OVER_EVENT(3),
       SCORE_BROADCAST(4),
       GAME_FINISHED_BROADCAST(5),
+      ROOM_STATE_BROADCAST(6),
       PAYLOAD_NOT_SET(0);
       private final int value;
       private PayloadCase(int value) {
@@ -12622,6 +13803,7 @@ public final class AircraftWar {
           case 3: return PLAYER_GAME_OVER_EVENT;
           case 4: return SCORE_BROADCAST;
           case 5: return GAME_FINISHED_BROADCAST;
+          case 6: return ROOM_STATE_BROADCAST;
           case 0: return PAYLOAD_NOT_SET;
           default: return null;
         }
@@ -12888,6 +14070,56 @@ public final class AircraftWar {
      */
     private void clearGameFinishedBroadcast() {
       if (payloadCase_ == 5) {
+        payloadCase_ = 0;
+        payload_ = null;
+      }
+    }
+
+    public static final int ROOM_STATE_BROADCAST_FIELD_NUMBER = 6;
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomStateBroadcast room_state_broadcast = 6;</code>
+     */
+    @java.lang.Override
+    public boolean hasRoomStateBroadcast() {
+      return payloadCase_ == 6;
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomStateBroadcast room_state_broadcast = 6;</code>
+     */
+    @java.lang.Override
+    public hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast getRoomStateBroadcast() {
+      if (payloadCase_ == 6) {
+         return (hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast) payload_;
+      }
+      return hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast.getDefaultInstance();
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomStateBroadcast room_state_broadcast = 6;</code>
+     */
+    private void setRoomStateBroadcast(hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast value) {
+      value.getClass();
+  payload_ = value;
+      payloadCase_ = 6;
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomStateBroadcast room_state_broadcast = 6;</code>
+     */
+    private void mergeRoomStateBroadcast(hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast value) {
+      value.getClass();
+  if (payloadCase_ == 6 &&
+          payload_ != hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast.getDefaultInstance()) {
+        payload_ = hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast.newBuilder((hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast) payload_)
+            .mergeFrom(value).buildPartial();
+      } else {
+        payload_ = value;
+      }
+      payloadCase_ = 6;
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomStateBroadcast room_state_broadcast = 6;</code>
+     */
+    private void clearRoomStateBroadcast() {
+      if (payloadCase_ == 6) {
         payloadCase_ = 0;
         payload_ = null;
       }
@@ -13246,6 +14478,54 @@ public final class AircraftWar {
         return this;
       }
 
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomStateBroadcast room_state_broadcast = 6;</code>
+       */
+      @java.lang.Override
+      public boolean hasRoomStateBroadcast() {
+        return instance.hasRoomStateBroadcast();
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomStateBroadcast room_state_broadcast = 6;</code>
+       */
+      @java.lang.Override
+      public hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast getRoomStateBroadcast() {
+        return instance.getRoomStateBroadcast();
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomStateBroadcast room_state_broadcast = 6;</code>
+       */
+      public Builder setRoomStateBroadcast(hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast value) {
+        copyOnWrite();
+        instance.setRoomStateBroadcast(value);
+        return this;
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomStateBroadcast room_state_broadcast = 6;</code>
+       */
+      public Builder setRoomStateBroadcast(
+          hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast.Builder builderForValue) {
+        copyOnWrite();
+        instance.setRoomStateBroadcast(builderForValue.build());
+        return this;
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomStateBroadcast room_state_broadcast = 6;</code>
+       */
+      public Builder mergeRoomStateBroadcast(hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast value) {
+        copyOnWrite();
+        instance.mergeRoomStateBroadcast(value);
+        return this;
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomStateBroadcast room_state_broadcast = 6;</code>
+       */
+      public Builder clearRoomStateBroadcast() {
+        copyOnWrite();
+        instance.clearRoomStateBroadcast();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:hitsz.aircraftwar.backend.WsMessage)
     }
     @java.lang.Override
@@ -13269,10 +14549,11 @@ public final class AircraftWar {
               hitsz.aircraftwar.backend.AircraftWar.PlayerGameOverEvent.class,
               hitsz.aircraftwar.backend.AircraftWar.ScoreBroadcast.class,
               hitsz.aircraftwar.backend.AircraftWar.GameFinishedBroadcast.class,
+              hitsz.aircraftwar.backend.AircraftWar.RoomStateBroadcast.class,
             };
             java.lang.String info =
-                "\u0000\u0005\u0001\u0000\u0001\u0005\u0005\u0000\u0000\u0000\u0001<\u0000\u0002<" +
-                "\u0000\u0003<\u0000\u0004<\u0000\u0005<\u0000";
+                "\u0000\u0006\u0001\u0000\u0001\u0006\u0006\u0000\u0000\u0000\u0001<\u0000\u0002<" +
+                "\u0000\u0003<\u0000\u0004<\u0000\u0005<\u0000\u0006<\u0000";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through

@@ -53,6 +53,7 @@ message Player {
   string username = 1;
   PlayerStatus status = 2;
   bool is_host = 3;
+  string avatar_id = 4;
 }
 
 // 房间基础信息。双人房间通过 players 表达当前成员。
@@ -93,11 +94,13 @@ message LeaderboardEntry {
   int32 win_count = 3;
   int32 game_count = 4;
   int64 updated_at = 5;
+  string avatar_id = 6;
 }
 
 // HTTP: 创建房间。
 message CreateRoomRequest {
   string username = 1;
+  string avatar_id = 2;
 }
 
 message CreateRoomResponse {
@@ -109,6 +112,7 @@ message CreateRoomResponse {
 message JoinRoomRequest {
   string room_id = 1;
   string username = 2;
+  string avatar_id = 3;
 }
 
 message JoinRoomResponse {
@@ -212,6 +216,16 @@ message ScoreBroadcast {
   int64 updated_at = 3;
 }
 
+// WS: 服务端广播完整房间状态快照。
+// 用于房间成员变化、准备状态变化、开始、结束以及重连后状态恢复。
+message RoomStateBroadcast {
+  Room room = 1;
+  repeated RoomPlayerScore scores = 2;
+  bool room_finished = 3;
+  RoomResult result = 4;
+  int64 updated_at = 5;
+}
+
 // WS: 当两名玩家都结束后，服务端广播整局最终完成。
 message GameFinishedBroadcast {
   string room_id = 1;
@@ -229,5 +243,6 @@ message WsMessage {
     PlayerGameOverEvent player_game_over_event = 3;
     ScoreBroadcast score_broadcast = 4;
     GameFinishedBroadcast game_finished_broadcast = 5;
+    RoomStateBroadcast room_state_broadcast = 6;
   }
 }

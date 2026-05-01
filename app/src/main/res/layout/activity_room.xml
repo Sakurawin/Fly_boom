@@ -152,6 +152,7 @@
                     android:layout_height="52dp"
                     android:layout_marginTop="16dp"
                     android:background="@drawable/ui2_button_primary"
+                    android:enabled="false"
                     android:text="@string/menu_start"
                     android:textAllCaps="false"
                     android:textColor="@color/ui2_button_text"

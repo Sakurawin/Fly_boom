@@ -8,17 +8,19 @@ public class MultiplayerApi {
     private final ProtoHttpClient httpClient = new ProtoHttpClient();
 
     // 房间前置流程统一走 HTTP，便于客户端在进入实时对战前完成状态确认。
-    public AircraftWar.CreateRoomResponse createRoom(String baseUrl, String username) throws IOException {
+    public AircraftWar.CreateRoomResponse createRoom(String baseUrl, String username, String avatarId) throws IOException {
         AircraftWar.CreateRoomRequest request = AircraftWar.CreateRoomRequest.newBuilder()
                 .setUsername(username)
+                .setAvatarId(avatarId)
                 .build();
         return httpClient.post(baseUrl, "/rooms/create", request, AircraftWar.CreateRoomResponse.parser());
     }
 
-    public AircraftWar.JoinRoomResponse joinRoom(String baseUrl, String roomId, String username) throws IOException {
+    public AircraftWar.JoinRoomResponse joinRoom(String baseUrl, String roomId, String username, String avatarId) throws IOException {
         AircraftWar.JoinRoomRequest request = AircraftWar.JoinRoomRequest.newBuilder()
                 .setRoomId(roomId)
                 .setUsername(username)
+                .setAvatarId(avatarId)
                 .build();
         return httpClient.post(baseUrl, "/rooms/join", request, AircraftWar.JoinRoomResponse.parser());
     }

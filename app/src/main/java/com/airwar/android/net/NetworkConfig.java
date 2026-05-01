@@ -12,6 +12,7 @@ public final class NetworkConfig {
     public static final String PREF_BASE_URL = "base_url";
     public static final String PREF_USERNAME = "username";
     public static final String PREF_ROOM_ID = "room_id";
+    public static final String PREF_AVATAR_ID = "avatar_id";
 
     private NetworkConfig() {
     }

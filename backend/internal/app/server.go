@@ -162,11 +162,16 @@ func (s *Server) initDB() error {
 			best_score INTEGER NOT NULL,
 			win_count INTEGER NOT NULL,
 			game_count INTEGER NOT NULL,
+			avatar_id TEXT NOT NULL DEFAULT '',
 			updated_at INTEGER NOT NULL
 		)`,
+		`ALTER TABLE leaderboard ADD COLUMN avatar_id TEXT NOT NULL DEFAULT ''`,
 	}
 	for _, stmt := range stmts {
 		if _, err := s.db.Exec(stmt); err != nil {
+			if strings.Contains(stmt, "ALTER TABLE leaderboard ADD COLUMN avatar_id") && strings.Contains(err.Error(), "duplicate column name") {
+				continue
+			}
 			return err
 		}
 	}
@@ -184,18 +189,18 @@ func (s *Server) handleCreateRoom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	now := s.cfg.Now()
-	player := &pb.Player{Username: req.Username, Status: pb.PlayerStatus_PLAYER_STATUS_JOINED, IsHost: true}
+	player := &pb.Player{Username: req.Username, Status: pb.PlayerStatus_PLAYER_STATUS_JOINED, IsHost: true, AvatarId: req.AvatarId}
 	s.mu.Lock()
 	roomID := s.newUniqueRoomIDLocked(now)
 	room := &pb.Room{RoomId: roomID, Status: pb.RoomStatus_ROOM_STATUS_WAITING, Players: []*pb.Player{proto.Clone(player).(*pb.Player)}}
-		s.rooms[room.RoomId] = &roomState{
-			room:        room,
-			playerOrder: []string{req.Username},
+	s.rooms[room.RoomId] = &roomState{
+		room:        room,
+		playerOrder: []string{req.Username},
 		players: map[string]*playerState{
 			req.Username: {player: player, lastHeartbeat: now, defeatEventIDs: make(map[string]struct{})},
 		},
-			conns: make(map[string]*clientConn),
-		}
+		conns: make(map[string]*clientConn),
+	}
 	s.mu.Unlock()
 	s.writeProto(w, http.StatusOK, &pb.CreateRoomResponse{Room: cloneRoom(room), Self: proto.Clone(player).(*pb.Player)})
 }
@@ -207,31 +212,44 @@ func (s *Server) handleJoinRoom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	room, ok := s.rooms[req.RoomId]
 	if !ok {
+		s.mu.Unlock()
 		http.Error(w, "room not found", http.StatusNotFound)
 		return
 	}
 	if room.room.Status == pb.RoomStatus_ROOM_STATUS_FINISHED {
+		s.mu.Unlock()
 		http.Error(w, "room finished", http.StatusGone)
 		return
 	}
 	if len(room.room.Players) >= 2 && room.players[req.Username] == nil {
+		s.mu.Unlock()
 		http.Error(w, "room full", http.StatusConflict)
 		return
 	}
 	if _, exists := room.players[req.Username]; exists {
+		if req.AvatarId != "" {
+			room.players[req.Username].player.AvatarId = req.AvatarId
+			updateRoomPlayer(room.room, room.players[req.Username].player)
+		}
 		self := proto.Clone(room.players[req.Username].player).(*pb.Player)
+		s.mu.Unlock()
 		s.writeProto(w, http.StatusOK, &pb.JoinRoomResponse{Room: cloneRoom(room.room), Self: self})
 		return
 	}
-	player := &pb.Player{Username: req.Username, Status: pb.PlayerStatus_PLAYER_STATUS_JOINED}
+	player := &pb.Player{Username: req.Username, Status: pb.PlayerStatus_PLAYER_STATUS_JOINED, AvatarId: req.AvatarId}
 	room.room.Players = append(room.room.Players, proto.Clone(player).(*pb.Player))
 	room.room.Status = pb.RoomStatus_ROOM_STATUS_FULL
 	room.playerOrder = append(room.playerOrder, req.Username)
 	room.players[req.Username] = &playerState{player: player, lastHeartbeat: s.cfg.Now(), defeatEventIDs: make(map[string]struct{})}
-	s.writeProto(w, http.StatusOK, &pb.JoinRoomResponse{Room: cloneRoom(room.room), Self: proto.Clone(player).(*pb.Player)})
+	broadcast := s.buildRoomStateBroadcastLocked(room, "")
+	connections := s.snapshotConnectionsLocked(room)
+	responseRoom := cloneRoom(room.room)
+	self := proto.Clone(player).(*pb.Player)
+	s.mu.Unlock()
+	go s.broadcastToConnections(connections, broadcast)
+	s.writeProto(w, http.StatusOK, &pb.JoinRoomResponse{Room: responseRoom, Self: self})
 }
 
 func (s *Server) handleReadyRoom(w http.ResponseWriter, r *http.Request) {
@@ -241,13 +259,14 @@ func (s *Server) handleReadyRoom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	room, player, err := s.lookupRoomPlayer(req.RoomId, req.Username)
 	if err != nil {
+		s.mu.Unlock()
 		s.writeLookupError(w, err)
 		return
 	}
 	if player.player.Status == pb.PlayerStatus_PLAYER_STATUS_FINISHED {
+		s.mu.Unlock()
 		http.Error(w, "player finished", http.StatusGone)
 		return
 	}
@@ -258,7 +277,12 @@ func (s *Server) handleReadyRoom(w http.ResponseWriter, r *http.Request) {
 	}) {
 		room.room.Status = pb.RoomStatus_ROOM_STATUS_READY
 	}
-	s.writeProto(w, http.StatusOK, &pb.ReadyRoomResponse{Room: cloneRoom(room.room)})
+	broadcast := s.buildRoomStateBroadcastLocked(room, "")
+	connections := s.snapshotConnectionsLocked(room)
+	responseRoom := cloneRoom(room.room)
+	s.mu.Unlock()
+	go s.broadcastToConnections(connections, broadcast)
+	s.writeProto(w, http.StatusOK, &pb.ReadyRoomResponse{Room: responseRoom})
 }
 
 func (s *Server) handleStartGame(w http.ResponseWriter, r *http.Request) {
@@ -291,10 +315,12 @@ func (s *Server) handleStartGame(w http.ResponseWriter, r *http.Request) {
 		ps.lastHeartbeat = now
 		updateRoomPlayer(room.room, ps.player)
 	}
+	roomStateBroadcast := s.buildRoomStateBroadcastLocked(room, "")
 	broadcast := &pb.ScoreBroadcast{RoomId: req.RoomId, Scores: roomScores(room), UpdatedAt: now.UnixMilli()}
 	connections := s.snapshotConnectionsLocked(room)
 	responseRoom := cloneRoom(room.room)
 	s.mu.Unlock()
+	go s.broadcastToConnections(connections, roomStateBroadcast)
 	go s.broadcastToConnections(connections, broadcast)
 	s.writeProto(w, http.StatusOK, &pb.StartGameResponse{Room: responseRoom, Started: true})
 }
@@ -364,7 +390,7 @@ func (s *Server) handleLeaderboard(w http.ResponseWriter, r *http.Request) {
 		limit = 20
 	}
 	offset := req.Offset
-	rows, err := s.db.Query(`SELECT username, best_score, win_count, game_count, updated_at FROM leaderboard ORDER BY best_score DESC, updated_at ASC, username ASC LIMIT ? OFFSET ?`, limit, offset)
+	rows, err := s.db.Query(`SELECT username, best_score, win_count, game_count, updated_at, avatar_id FROM leaderboard ORDER BY best_score DESC, updated_at ASC, username ASC LIMIT ? OFFSET ?`, limit, offset)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -373,7 +399,7 @@ func (s *Server) handleLeaderboard(w http.ResponseWriter, r *http.Request) {
 	resp := &pb.GetLeaderboardResponse{}
 	for rows.Next() {
 		entry := &pb.LeaderboardEntry{}
-		if err := rows.Scan(&entry.Username, &entry.BestScore, &entry.WinCount, &entry.GameCount, &entry.UpdatedAt); err != nil {
+		if err := rows.Scan(&entry.Username, &entry.BestScore, &entry.WinCount, &entry.GameCount, &entry.UpdatedAt, &entry.AvatarId); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -400,10 +426,12 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	oldConn := room.conns[username]
 	room.conns[username] = &clientConn{conn: conn}
 	player.lastHeartbeat = s.cfg.Now()
+	broadcast := s.buildRoomStateBroadcastLocked(room, username)
 	s.mu.Unlock()
 	if oldConn != nil {
 		_ = oldConn.conn.Close()
 	}
+	go s.broadcastToConnections([]*clientConn{{conn: conn}}, broadcast)
 	go s.readLoop(roomID, username, conn)
 }
 
@@ -498,10 +526,11 @@ func (s *Server) finishPlayerLocked(room *roomState, username string, reason pb.
 	player.player.Status = pb.PlayerStatus_PLAYER_STATUS_FINISHED
 	player.finishReason = reason
 	updateRoomPlayer(room.room, player.player)
-	if err := s.applyLeaderboardProgressLocked(username, player.score); err != nil {
+	if err := s.applyLeaderboardProgressLocked(player.player, player.score); err != nil {
 		return err
 	}
 	player.leaderboardSynced = true
+	roomStateBroadcast := s.buildRoomStateBroadcastLocked(room, "")
 	broadcast := &pb.ScoreBroadcast{RoomId: room.room.RoomId, Scores: roomScores(room), UpdatedAt: s.cfg.Now().UnixMilli()}
 	connections := s.snapshotConnectionsLocked(room)
 	if allPlayers(room, func(ps *playerState) bool {
@@ -510,10 +539,13 @@ func (s *Server) finishPlayerLocked(room *roomState, username string, reason pb.
 		// 只有双方都结束后，房间才进入最终完成态并广播整局结算。
 		room.room.Status = pb.RoomStatus_ROOM_STATUS_FINISHED
 		result := s.finalizeRoomLocked(room)
+		roomStateBroadcast = s.buildRoomStateBroadcastLocked(room, "")
+		go s.broadcastToConnections(connections, roomStateBroadcast)
 		go s.broadcastToConnections(connections, broadcast)
 		go s.broadcastToConnections(connections, &pb.GameFinishedBroadcast{RoomId: room.room.RoomId, Finished: true, Result: buildRoomResult(result, "")})
 		return nil
 	}
+	go s.broadcastToConnections(connections, roomStateBroadcast)
 	go s.broadcastToConnections(connections, broadcast)
 	return nil
 }
@@ -567,14 +599,15 @@ func (s *Server) persistResultLocked(result *persistedResult) error {
 	return err
 }
 
-func (s *Server) applyLeaderboardProgressLocked(username string, score int32) error {
+func (s *Server) applyLeaderboardProgressLocked(player *pb.Player, score int32) error {
 	now := s.cfg.Now().UnixMilli()
-	_, err := s.db.Exec(`INSERT INTO leaderboard (username, best_score, win_count, game_count, updated_at)
-		VALUES (?, ?, 0, 1, ?)
+	_, err := s.db.Exec(`INSERT INTO leaderboard (username, best_score, win_count, game_count, avatar_id, updated_at)
+		VALUES (?, ?, 0, 1, ?, ?)
 		ON CONFLICT(username) DO UPDATE SET
 		best_score = CASE WHEN excluded.best_score > leaderboard.best_score THEN excluded.best_score ELSE leaderboard.best_score END,
 		game_count = leaderboard.game_count + 1,
-		updated_at = CASE WHEN excluded.best_score > leaderboard.best_score THEN excluded.updated_at ELSE leaderboard.updated_at END`, username, score, now)
+		avatar_id = excluded.avatar_id,
+		updated_at = CASE WHEN excluded.best_score > leaderboard.best_score THEN excluded.updated_at ELSE leaderboard.updated_at END`, player.Username, score, player.AvatarId, now)
 	return err
 }
 
@@ -653,6 +686,8 @@ func wrapServerMessage(message proto.Message) (*pb.WsMessage, error) {
 	switch msg := message.(type) {
 	case *pb.ScoreBroadcast:
 		return &pb.WsMessage{Payload: &pb.WsMessage_ScoreBroadcast{ScoreBroadcast: msg}}, nil
+	case *pb.RoomStateBroadcast:
+		return &pb.WsMessage{Payload: &pb.WsMessage_RoomStateBroadcast{RoomStateBroadcast: msg}}, nil
 	case *pb.GameFinishedBroadcast:
 		return &pb.WsMessage{Payload: &pb.WsMessage_GameFinishedBroadcast{GameFinishedBroadcast: msg}}, nil
 	default:
@@ -727,6 +762,19 @@ func roomScores(room *roomState) []*pb.RoomPlayerScore {
 		})
 	}
 	return scores
+}
+
+func (s *Server) buildRoomStateBroadcastLocked(room *roomState, username string) *pb.RoomStateBroadcast {
+	broadcast := &pb.RoomStateBroadcast{
+		Room:         cloneRoom(room.room),
+		Scores:       roomScores(room),
+		RoomFinished: room.room.Status == pb.RoomStatus_ROOM_STATUS_FINISHED,
+		UpdatedAt:    s.cfg.Now().UnixMilli(),
+	}
+	if room.result != nil {
+		broadcast.Result = buildRoomResult(room.result, username)
+	}
+	return broadcast
 }
 
 func buildRoomResult(result *persistedResult, username string) *pb.RoomResult {

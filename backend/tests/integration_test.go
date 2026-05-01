@@ -204,6 +204,136 @@ func TestStartGameBroadcastsPlayingStatusToOtherPlayer(t *testing.T) {
 	_ = aliceWS
 }
 
+func TestRoomStateBroadcastOnJoinAndReady(t *testing.T) {
+	server := newTestServer(t)
+	defer server.Close()
+
+	createResp := postProto(t, server.URL, "/rooms/create", &pb.CreateRoomRequest{Username: "alice", AvatarId: "pilot-alpha"}, &pb.CreateRoomResponse{}).(*pb.CreateRoomResponse)
+	roomID := createResp.Room.RoomId
+	aliceWS := openWS(t, server.URL, roomID, "alice")
+	defer aliceWS.Close()
+
+	initial := readRoomStateBroadcast(t, aliceWS)
+	assertRoomPlayer(t, initial.Room, "alice", pb.PlayerStatus_PLAYER_STATUS_JOINED, true, "pilot-alpha")
+	if initial.Room.GetStatus() != pb.RoomStatus_ROOM_STATUS_WAITING {
+		t.Fatalf("initial room status = %v, want WAITING", initial.Room.GetStatus())
+	}
+
+	postProto(t, server.URL, "/rooms/join", &pb.JoinRoomRequest{RoomId: roomID, Username: "bob", AvatarId: "pilot-bravo"}, &pb.JoinRoomResponse{})
+	joined := readRoomStateBroadcast(t, aliceWS)
+	if joined.Room.GetStatus() != pb.RoomStatus_ROOM_STATUS_FULL {
+		t.Fatalf("joined room status = %v, want FULL", joined.Room.GetStatus())
+	}
+	assertRoomPlayer(t, joined.Room, "alice", pb.PlayerStatus_PLAYER_STATUS_JOINED, true, "pilot-alpha")
+	assertRoomPlayer(t, joined.Room, "bob", pb.PlayerStatus_PLAYER_STATUS_JOINED, false, "pilot-bravo")
+
+	bobWS := openWS(t, server.URL, roomID, "bob")
+	defer bobWS.Close()
+	_ = readRoomStateBroadcast(t, bobWS)
+
+	postProto(t, server.URL, "/rooms/ready", &pb.ReadyRoomRequest{RoomId: roomID, Username: "alice"}, &pb.ReadyRoomResponse{})
+	aliceReadyHost := readRoomStateBroadcast(t, aliceWS)
+	aliceReadyGuest := readRoomStateBroadcast(t, bobWS)
+	assertRoomPlayer(t, aliceReadyHost.Room, "alice", pb.PlayerStatus_PLAYER_STATUS_READY, true, "pilot-alpha")
+	assertRoomPlayer(t, aliceReadyGuest.Room, "alice", pb.PlayerStatus_PLAYER_STATUS_READY, true, "pilot-alpha")
+	if aliceReadyHost.Room.GetStatus() != pb.RoomStatus_ROOM_STATUS_FULL {
+		t.Fatalf("room status after first ready = %v, want FULL", aliceReadyHost.Room.GetStatus())
+	}
+
+	postProto(t, server.URL, "/rooms/ready", &pb.ReadyRoomRequest{RoomId: roomID, Username: "bob"}, &pb.ReadyRoomResponse{})
+	readyHost := readRoomStateBroadcast(t, aliceWS)
+	readyGuest := readRoomStateBroadcast(t, bobWS)
+	if readyHost.Room.GetStatus() != pb.RoomStatus_ROOM_STATUS_READY {
+		t.Fatalf("host room status after both ready = %v, want READY", readyHost.Room.GetStatus())
+	}
+	if readyGuest.Room.GetStatus() != pb.RoomStatus_ROOM_STATUS_READY {
+		t.Fatalf("guest room status after both ready = %v, want READY", readyGuest.Room.GetStatus())
+	}
+	assertRoomPlayer(t, readyHost.Room, "bob", pb.PlayerStatus_PLAYER_STATUS_READY, false, "pilot-bravo")
+	assertRoomPlayer(t, readyGuest.Room, "bob", pb.PlayerStatus_PLAYER_STATUS_READY, false, "pilot-bravo")
+}
+
+func TestWebSocketSendsInitialRoomState(t *testing.T) {
+	server := newTestServer(t)
+	defer server.Close()
+
+	createResp := postProto(t, server.URL, "/rooms/create", &pb.CreateRoomRequest{Username: "alice", AvatarId: "pilot-alpha"}, &pb.CreateRoomResponse{}).(*pb.CreateRoomResponse)
+	roomID := createResp.Room.RoomId
+	postProto(t, server.URL, "/rooms/join", &pb.JoinRoomRequest{RoomId: roomID, Username: "bob", AvatarId: "pilot-bravo"}, &pb.JoinRoomResponse{})
+	postProto(t, server.URL, "/rooms/ready", &pb.ReadyRoomRequest{RoomId: roomID, Username: "alice"}, &pb.ReadyRoomResponse{})
+
+	bobWS := openWS(t, server.URL, roomID, "bob")
+	defer bobWS.Close()
+
+	snapshot := readRoomStateBroadcast(t, bobWS)
+	if snapshot.Room.GetRoomId() != roomID {
+		t.Fatalf("snapshot room id = %q, want %q", snapshot.Room.GetRoomId(), roomID)
+	}
+	if snapshot.Room.GetStatus() != pb.RoomStatus_ROOM_STATUS_FULL {
+		t.Fatalf("snapshot room status = %v, want FULL", snapshot.Room.GetStatus())
+	}
+	if snapshot.RoomFinished {
+		t.Fatal("snapshot should not mark room finished")
+	}
+	if snapshot.Result != nil {
+		t.Fatal("snapshot result should be nil before room is finished")
+	}
+	assertRoomPlayer(t, snapshot.Room, "alice", pb.PlayerStatus_PLAYER_STATUS_READY, true, "pilot-alpha")
+	assertRoomPlayer(t, snapshot.Room, "bob", pb.PlayerStatus_PLAYER_STATUS_JOINED, false, "pilot-bravo")
+	assertScoreStatus(t, &pb.ScoreBroadcast{Scores: snapshot.Scores}, "alice", 0, pb.PlayerStatus_PLAYER_STATUS_READY)
+	assertScoreStatus(t, &pb.ScoreBroadcast{Scores: snapshot.Scores}, "bob", 0, pb.PlayerStatus_PLAYER_STATUS_JOINED)
+}
+
+func TestLeaderboardPersistsAvatar(t *testing.T) {
+	server := newFileDBTestServer(t, "leaderboard-avatar.sqlite")
+	defer server.Close()
+
+	createResp := postProto(t, server.URL, "/rooms/create", &pb.CreateRoomRequest{Username: "alice", AvatarId: "pilot-alpha"}, &pb.CreateRoomResponse{}).(*pb.CreateRoomResponse)
+	roomID := createResp.Room.RoomId
+	postProto(t, server.URL, "/rooms/join", &pb.JoinRoomRequest{RoomId: roomID, Username: "bob", AvatarId: "pilot-bravo"}, &pb.JoinRoomResponse{})
+	postProto(t, server.URL, "/rooms/ready", &pb.ReadyRoomRequest{RoomId: roomID, Username: "alice"}, &pb.ReadyRoomResponse{})
+	postProto(t, server.URL, "/rooms/ready", &pb.ReadyRoomRequest{RoomId: roomID, Username: "bob"}, &pb.ReadyRoomResponse{})
+	postProto(t, server.URL, "/rooms/start", &pb.StartGameRequest{RoomId: roomID, Username: "alice"}, &pb.StartGameResponse{})
+
+	aliceWS := openWS(t, server.URL, roomID, "alice")
+	defer aliceWS.Close()
+	bobWS := openWS(t, server.URL, roomID, "bob")
+	defer bobWS.Close()
+	_ = readRoomStateBroadcast(t, aliceWS)
+	_ = readRoomStateBroadcast(t, bobWS)
+
+	writeProtoWS(t, aliceWS, wrapDefeat(roomID, "alice", pb.EnemyType_ENEMY_TYPE_BOSS, "a-1"))
+	readScoreBroadcast(t, aliceWS)
+	readScoreBroadcast(t, bobWS)
+	writeProtoWS(t, aliceWS, wrapGameOver(roomID, "alice", 50, "done"))
+	_ = readRoomStateOrScoreThenRoomState(t, aliceWS)
+	_ = readRoomStateOrScoreThenRoomState(t, bobWS)
+
+	writeProtoWS(t, bobWS, wrapDefeat(roomID, "bob", pb.EnemyType_ENEMY_TYPE_ELITE, "b-1"))
+	readScoreBroadcast(t, aliceWS)
+	readScoreBroadcast(t, bobWS)
+	writeProtoWS(t, bobWS, wrapGameOver(roomID, "bob", 20, "done"))
+	_ = readRoomStateOrScoreThenRoomState(t, aliceWS)
+	finished := readGameFinished(t, bobWS)
+	if finished.Result.WinnerUsername != "alice" {
+		t.Fatalf("winner = %q, want alice", finished.Result.WinnerUsername)
+	}
+
+	leaderboard := postProto(t, server.URL, "/leaderboard", &pb.GetLeaderboardRequest{Limit: 10}, &pb.GetLeaderboardResponse{}).(*pb.GetLeaderboardResponse)
+	if len(leaderboard.Entries) != 2 {
+		t.Fatalf("leaderboard size = %d, want 2", len(leaderboard.Entries))
+	}
+	assertLeaderboardAvatar(t, leaderboard.Entries, "alice", "pilot-alpha")
+	assertLeaderboardAvatar(t, leaderboard.Entries, "bob", "pilot-bravo")
+
+	db := openSQLiteForAssert(t, server.dbPath)
+	defer db.Close()
+
+	rows := loadLeaderboardRows(t, db)
+	assertLeaderboardRowAvatar(t, rows, "alice", "pilot-alpha")
+	assertLeaderboardRowAvatar(t, rows, "bob", "pilot-bravo")
+}
+
 func TestCreateRoomReturnsSixDigitNumericRoomID(t *testing.T) {
 	server := newTestServer(t)
 	defer server.Close()
@@ -288,6 +418,7 @@ type leaderboardRow struct {
 	BestScore int32
 	WinCount  int32
 	GameCount int32
+	AvatarID  string
 }
 
 func openSQLiteForAssert(t *testing.T, dbPath string) *sql.DB {
@@ -301,7 +432,7 @@ func openSQLiteForAssert(t *testing.T, dbPath string) *sql.DB {
 
 func loadLeaderboardRows(t *testing.T, db *sql.DB) []leaderboardRow {
 	t.Helper()
-	rows, err := db.Query(`SELECT username, best_score, win_count, game_count FROM leaderboard ORDER BY best_score DESC, updated_at ASC, username ASC`)
+	rows, err := db.Query(`SELECT username, best_score, win_count, game_count, avatar_id FROM leaderboard ORDER BY best_score DESC, updated_at ASC, username ASC`)
 	if err != nil {
 		t.Fatalf("query leaderboard: %v", err)
 	}
@@ -309,7 +440,7 @@ func loadLeaderboardRows(t *testing.T, db *sql.DB) []leaderboardRow {
 	var entries []leaderboardRow
 	for rows.Next() {
 		var entry leaderboardRow
-		if err := rows.Scan(&entry.Username, &entry.BestScore, &entry.WinCount, &entry.GameCount); err != nil {
+		if err := rows.Scan(&entry.Username, &entry.BestScore, &entry.WinCount, &entry.GameCount, &entry.AvatarID); err != nil {
 			t.Fatalf("scan leaderboard row: %v", err)
 		}
 		entries = append(entries, entry)
@@ -377,9 +508,31 @@ func wrapGameOver(roomID, username string, finalScore int32, reason string) *pb.
 
 func readScoreBroadcast(t *testing.T, conn *websocket.Conn) *pb.ScoreBroadcast {
 	t.Helper()
+	for {
+		msgType, payload, err := conn.ReadMessage()
+		if err != nil {
+			t.Fatalf("read score broadcast: %v", err)
+		}
+		if msgType != websocket.BinaryMessage {
+			continue
+		}
+		frame := &pb.WsMessage{}
+		if err := proto.Unmarshal(payload, frame); err != nil {
+			t.Fatalf("unmarshal ws frame: %v", err)
+		}
+		msg, ok := frame.Payload.(*pb.WsMessage_ScoreBroadcast)
+		if !ok {
+			continue
+		}
+		return msg.ScoreBroadcast
+	}
+}
+
+func readRoomStateBroadcast(t *testing.T, conn *websocket.Conn) *pb.RoomStateBroadcast {
+	t.Helper()
 	msgType, payload, err := conn.ReadMessage()
 	if err != nil {
-		t.Fatalf("read score broadcast: %v", err)
+		t.Fatalf("read room state broadcast: %v", err)
 	}
 	if msgType != websocket.BinaryMessage {
 		t.Fatalf("message type = %d, want binary", msgType)
@@ -388,11 +541,38 @@ func readScoreBroadcast(t *testing.T, conn *websocket.Conn) *pb.ScoreBroadcast {
 	if err := proto.Unmarshal(payload, frame); err != nil {
 		t.Fatalf("unmarshal ws frame: %v", err)
 	}
-	msg, ok := frame.Payload.(*pb.WsMessage_ScoreBroadcast)
+	msg, ok := frame.Payload.(*pb.WsMessage_RoomStateBroadcast)
 	if !ok {
-		t.Fatalf("payload type = %T, want score broadcast", frame.Payload)
+		t.Fatalf("payload type = %T, want room state broadcast", frame.Payload)
 	}
-	return msg.ScoreBroadcast
+	return msg.RoomStateBroadcast
+}
+
+func readRoomStateOrScoreThenRoomState(t *testing.T, conn *websocket.Conn) *pb.RoomStateBroadcast {
+	t.Helper()
+	for {
+		msgType, payload, err := conn.ReadMessage()
+		if err != nil {
+			t.Fatalf("read room state broadcast: %v", err)
+		}
+		if msgType != websocket.BinaryMessage {
+			continue
+		}
+		frame := &pb.WsMessage{}
+		if err := proto.Unmarshal(payload, frame); err != nil {
+			t.Fatalf("unmarshal ws frame: %v", err)
+		}
+		switch msg := frame.Payload.(type) {
+		case *pb.WsMessage_RoomStateBroadcast:
+			return msg.RoomStateBroadcast
+		case *pb.WsMessage_ScoreBroadcast:
+			continue
+		case *pb.WsMessage_GameFinishedBroadcast:
+			continue
+		default:
+			t.Fatalf("payload type = %T, want room state, score, or game finished broadcast", frame.Payload)
+		}
+	}
 }
 
 func readGameFinished(t *testing.T, conn *websocket.Conn) *pb.GameFinishedBroadcast {
@@ -411,6 +591,8 @@ func readGameFinished(t *testing.T, conn *websocket.Conn) *pb.GameFinishedBroadc
 		}
 		switch msg := frame.Payload.(type) {
 		case *pb.WsMessage_ScoreBroadcast:
+			continue
+		case *pb.WsMessage_RoomStateBroadcast:
 			continue
 		case *pb.WsMessage_GameFinishedBroadcast:
 			return msg.GameFinishedBroadcast
@@ -446,4 +628,46 @@ func assertScoreStatus(t *testing.T, broadcast *pb.ScoreBroadcast, username stri
 		return
 	}
 	t.Fatalf("score for %s not found", username)
+}
+
+func assertRoomPlayer(t *testing.T, room *pb.Room, username string, wantStatus pb.PlayerStatus, wantHost bool, wantAvatarID string) {
+	t.Helper()
+	for _, player := range room.Players {
+		if player.Username != username {
+			continue
+		}
+		if player.Status != wantStatus || player.IsHost != wantHost || player.AvatarId != wantAvatarID {
+			t.Fatalf("room player[%s] = %+v, want status=%v host=%v avatar=%q", username, player, wantStatus, wantHost, wantAvatarID)
+		}
+		return
+	}
+	t.Fatalf("room player %s not found", username)
+}
+
+func assertLeaderboardAvatar(t *testing.T, entries []*pb.LeaderboardEntry, username, wantAvatarID string) {
+	t.Helper()
+	for _, entry := range entries {
+		if entry.Username != username {
+			continue
+		}
+		if entry.AvatarId != wantAvatarID {
+			t.Fatalf("leaderboard avatar for %s = %q, want %q", username, entry.AvatarId, wantAvatarID)
+		}
+		return
+	}
+	t.Fatalf("leaderboard entry for %s not found", username)
+}
+
+func assertLeaderboardRowAvatar(t *testing.T, rows []leaderboardRow, username, wantAvatarID string) {
+	t.Helper()
+	for _, row := range rows {
+		if row.Username != username {
+			continue
+		}
+		if row.AvatarID != wantAvatarID {
+			t.Fatalf("stored leaderboard avatar for %s = %q, want %q", username, row.AvatarID, wantAvatarID)
+		}
+		return
+	}
+	t.Fatalf("stored leaderboard row for %s not found", username)
 }

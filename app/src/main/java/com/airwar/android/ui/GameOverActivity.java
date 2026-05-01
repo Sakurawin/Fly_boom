@@ -2,9 +2,6 @@ package com.airwar.android.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.TypedValue;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,7 +23,6 @@ public class GameOverActivity extends AppCompatActivity implements MultiplayerSe
 
     private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
     private final com.airwar.android.net.MultiplayerApi multiplayerApi = new com.airwar.android.net.MultiplayerApi();
-    private String selectedAvatarId = PilotAvatarRegistry.DEFAULT_AVATAR_ID;
     private TextView scoreText;
     private TextView statusText;
     private TextView opponentStatusText;
@@ -45,7 +41,6 @@ public class GameOverActivity extends AppCompatActivity implements MultiplayerSe
         TextView durationText = findViewById(R.id.game_over_duration);
         statusText = findViewById(R.id.game_over_status);
         opponentStatusText = findViewById(R.id.game_over_opponent_status);
-        LinearLayout avatarContainer = findViewById(R.id.game_over_avatar_container);
         TextView submitButton = findViewById(R.id.game_over_submit_button);
 
         headerTitle.setText(getString(R.string.game_over_title));
@@ -56,7 +51,6 @@ public class GameOverActivity extends AppCompatActivity implements MultiplayerSe
         statusText.setText(getString(R.string.game_over_status_normal));
         opponentStatusText.setText(getString(R.string.game_over_opponent_playing));
 
-        buildAvatarSelector(avatarContainer);
         MultiplayerSession.getInstance().addListener(this);
         syncStateOnce();
 
@@ -180,54 +174,6 @@ public class GameOverActivity extends AppCompatActivity implements MultiplayerSe
             }
         }
         return null;
-    }
-
-    private void buildAvatarSelector(LinearLayout container) {
-        // 头像选择暂时保留为本地 UI 资产，等后端扩展头像字段后再真正纳入联机协议。
-        container.removeAllViews();
-        for (int i = 0; i < PilotAvatarRegistry.IDS.length; i++) {
-            String avatarId = PilotAvatarRegistry.IDS[i];
-            ImageView imageView = new ImageView(this);
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dp(56), dp(56));
-            params.setMarginEnd(dp(10));
-            imageView.setLayoutParams(params);
-            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            imageView.setBackgroundResource(R.drawable.ui2_avatar_border);
-            imageView.setImageResource(PilotAvatarRegistry.drawableFor(avatarId));
-            imageView.setTag(avatarId);
-            imageView.setPadding(dp(2), dp(2), dp(2), dp(2));
-            imageView.setOnClickListener(v -> {
-                selectedAvatarId = avatarId;
-                refreshAvatarSelection(container);
-            });
-            container.addView(imageView);
-
-            if (i == 0) {
-                selectedAvatarId = avatarId;
-            }
-        }
-        refreshAvatarSelection(container);
-    }
-
-    private void refreshAvatarSelection(LinearLayout container) {
-        for (int i = 0; i < container.getChildCount(); i++) {
-            ImageView imageView = (ImageView) container.getChildAt(i);
-            Object tag = imageView.getTag();
-            String avatarId = tag == null ? "" : tag.toString();
-            imageView.setBackgroundResource(
-                    avatarId.equals(selectedAvatarId)
-                            ? R.drawable.ui2_avatar_border_selected
-                            : R.drawable.ui2_avatar_border
-            );
-        }
-    }
-
-    private int dp(int value) {
-        return (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP,
-                value,
-                getResources().getDisplayMetrics()
-        );
     }
 
     private String readableGameResult(AircraftWar.GameResultType resultType) {
