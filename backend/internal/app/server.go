@@ -12,6 +12,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/acc1111/aircraft-war-hitsz/backend/internal/entity"
+	"github.com/acc1111/aircraft-war-hitsz/backend/internal/repo"
+	"github.com/acc1111/aircraft-war-hitsz/backend/internal/service"
 	"github.com/gorilla/websocket"
 	_ "modernc.org/sqlite"
 	"google.golang.org/protobuf/proto"
@@ -30,6 +33,7 @@ type Config struct {
 type Server struct {
 	cfg      Config
 	db       *sql.DB
+	repo     *repo.SQLiteRepo
 	handler  http.Handler
 	upgrader websocket.Upgrader
 
@@ -48,9 +52,7 @@ type roomState struct {
 	players          map[string]*playerState
 	conns            map[string]*clientConn
 	result           *persistedResult
-	resultBroadcast  bool
 	winCountApplied  bool
-	finishedRecorded bool
 }
 
 type clientConn struct {
@@ -58,26 +60,9 @@ type clientConn struct {
 	mu   sync.Mutex
 }
 
-type playerState struct {
-	player            *pb.Player
-	score             int32
-	finishReason      pb.PlayerFinishReason
-	lastHeartbeat     time.Time
-	leaderboardSynced bool
-	defeatEventIDs    map[string]struct{}
-}
+type playerState = entity.PlayerState
 
-type persistedResult struct {
-	roomID              string
-	playerAUsername     string
-	playerBUsername     string
-	playerAScore        int32
-	playerBScore        int32
-	winnerUsername      string
-	finishedAt          int64
-	playerAFinishReason pb.PlayerFinishReason
-	playerBFinishReason pb.PlayerFinishReason
-}
+type persistedResult = entity.PersistedResult
 
 func NewServer(cfg Config) (*Server, error) {
 	if cfg.DBPath == "" {
@@ -102,6 +87,7 @@ func NewServer(cfg Config) (*Server, error) {
 	server := &Server{
 		cfg: cfg,
 		db:  db,
+		repo: repo.NewSQLiteRepo(db),
 		upgrader: websocket.Upgrader{
 			CheckOrigin: func(_ *http.Request) bool { return true },
 		},
@@ -109,7 +95,7 @@ func NewServer(cfg Config) (*Server, error) {
 		stopCh: make(chan struct{}),
 		doneCh: make(chan struct{}),
 	}
-	if err := server.initDB(); err != nil {
+	if err := server.repo.Init(); err != nil {
 		_ = db.Close()
 		return nil, err
 	}
@@ -145,40 +131,6 @@ func (s *Server) Close() error {
 	return s.db.Close()
 }
 
-func (s *Server) initDB() error {
-	stmts := []string{
-		`CREATE TABLE IF NOT EXISTS room_results (
-			room_id TEXT PRIMARY KEY,
-			player_a_username TEXT NOT NULL,
-			player_b_username TEXT NOT NULL,
-			player_a_score INTEGER NOT NULL,
-			player_b_score INTEGER NOT NULL,
-			winner_username TEXT NOT NULL,
-			player_a_finish_reason INTEGER NOT NULL,
-			player_b_finish_reason INTEGER NOT NULL,
-			finished_at INTEGER NOT NULL
-		)`,
-		`CREATE TABLE IF NOT EXISTS leaderboard (
-			username TEXT PRIMARY KEY,
-			best_score INTEGER NOT NULL,
-			win_count INTEGER NOT NULL,
-			game_count INTEGER NOT NULL,
-			avatar_id TEXT NOT NULL DEFAULT '',
-			updated_at INTEGER NOT NULL
-		)`,
-		`ALTER TABLE leaderboard ADD COLUMN avatar_id TEXT NOT NULL DEFAULT ''`,
-	}
-	for _, stmt := range stmts {
-		if _, err := s.db.Exec(stmt); err != nil {
-			if strings.Contains(stmt, "ALTER TABLE leaderboard ADD COLUMN avatar_id") && strings.Contains(err.Error(), "duplicate column name") {
-				continue
-			}
-			return err
-		}
-	}
-	return nil
-}
-
 func (s *Server) handleCreateRoom(w http.ResponseWriter, r *http.Request) {
 	var req pb.CreateRoomRequest
 	if err := s.decodeRequest(r, &req); err != nil {
@@ -191,7 +143,7 @@ func (s *Server) handleCreateRoom(w http.ResponseWriter, r *http.Request) {
 	}
 	now := s.cfg.Now()
 	player := &pb.Player{Username: req.Username, Status: pb.PlayerStatus_PLAYER_STATUS_JOINED, IsHost: true, AvatarId: req.AvatarId}
-	difficulty := normalizeRoomDifficulty(req.Difficulty)
+	difficulty := service.NormalizeRoomDifficulty(req.Difficulty)
 	s.mu.Lock()
 	roomID := s.newUniqueRoomIDLocked(now)
 	room := &pb.Room{
@@ -204,7 +156,7 @@ func (s *Server) handleCreateRoom(w http.ResponseWriter, r *http.Request) {
 		room:        room,
 		playerOrder: []string{req.Username},
 		players: map[string]*playerState{
-			req.Username: {player: player, lastHeartbeat: now, defeatEventIDs: make(map[string]struct{})},
+			req.Username: {Player: player, LastHeartbeat: now, DefeatEventIDs: make(map[string]struct{})},
 		},
 		conns: make(map[string]*clientConn),
 	}
@@ -225,7 +177,7 @@ func (s *Server) handleUpdateRoomDifficulty(w http.ResponseWriter, r *http.Reque
 		s.writeLookupError(w, err)
 		return
 	}
-	if !player.player.IsHost {
+	if !player.Player.IsHost {
 		s.mu.Unlock()
 		http.Error(w, "only host can update difficulty", http.StatusForbidden)
 		return
@@ -235,7 +187,7 @@ func (s *Server) handleUpdateRoomDifficulty(w http.ResponseWriter, r *http.Reque
 		http.Error(w, "room difficulty is locked", http.StatusConflict)
 		return
 	}
-	room.room.Difficulty = normalizeRoomDifficulty(req.Difficulty)
+	room.room.Difficulty = service.NormalizeRoomDifficulty(req.Difficulty)
 	responseRoom := cloneRoom(room.room)
 	broadcasts := s.buildRoomStateBroadcastsForConnectionsLocked(room)
 	connections := s.snapshotConnectionsLocked(room)
@@ -269,10 +221,10 @@ func (s *Server) handleJoinRoom(w http.ResponseWriter, r *http.Request) {
 	}
 	if _, exists := room.players[req.Username]; exists {
 		if req.AvatarId != "" {
-			room.players[req.Username].player.AvatarId = req.AvatarId
-			updateRoomPlayer(room.room, room.players[req.Username].player)
+			room.players[req.Username].Player.AvatarId = req.AvatarId
+			updateRoomPlayer(room.room, room.players[req.Username].Player)
 		}
-		self := proto.Clone(room.players[req.Username].player).(*pb.Player)
+		self := proto.Clone(room.players[req.Username].Player).(*pb.Player)
 		s.mu.Unlock()
 		s.writeProto(w, http.StatusOK, &pb.JoinRoomResponse{Room: cloneRoom(room.room), Self: self})
 		return
@@ -281,7 +233,7 @@ func (s *Server) handleJoinRoom(w http.ResponseWriter, r *http.Request) {
 	room.room.Players = append(room.room.Players, proto.Clone(player).(*pb.Player))
 	room.room.Status = pb.RoomStatus_ROOM_STATUS_FULL
 	room.playerOrder = append(room.playerOrder, req.Username)
-	room.players[req.Username] = &playerState{player: player, lastHeartbeat: s.cfg.Now(), defeatEventIDs: make(map[string]struct{})}
+	room.players[req.Username] = &playerState{Player: player, LastHeartbeat: s.cfg.Now(), DefeatEventIDs: make(map[string]struct{})}
 	broadcast := s.buildRoomStateBroadcastLocked(room, "")
 	connections := s.snapshotConnectionsLocked(room)
 	responseRoom := cloneRoom(room.room)
@@ -304,15 +256,15 @@ func (s *Server) handleReadyRoom(w http.ResponseWriter, r *http.Request) {
 		s.writeLookupError(w, err)
 		return
 	}
-	if player.player.Status == pb.PlayerStatus_PLAYER_STATUS_FINISHED {
+	if player.Player.Status == pb.PlayerStatus_PLAYER_STATUS_FINISHED {
 		s.mu.Unlock()
 		http.Error(w, "player finished", http.StatusGone)
 		return
 	}
-	player.player.Status = pb.PlayerStatus_PLAYER_STATUS_READY
-	updateRoomPlayer(room.room, player.player)
+	player.Player.Status = pb.PlayerStatus_PLAYER_STATUS_READY
+	updateRoomPlayer(room.room, player.Player)
 	if len(room.room.Players) == 2 && allPlayers(room, func(ps *playerState) bool {
-		return ps.player.Status == pb.PlayerStatus_PLAYER_STATUS_READY
+		return ps.Player.Status == pb.PlayerStatus_PLAYER_STATUS_READY
 	}) {
 		room.room.Status = pb.RoomStatus_ROOM_STATUS_READY
 	}
@@ -337,7 +289,7 @@ func (s *Server) handleStartGame(w http.ResponseWriter, r *http.Request) {
 		s.writeLookupError(w, err)
 		return
 	}
-	if !player.player.IsHost {
+	if !player.Player.IsHost {
 		s.mu.Unlock()
 		http.Error(w, "only host can start", http.StatusForbidden)
 		return
@@ -350,9 +302,9 @@ func (s *Server) handleStartGame(w http.ResponseWriter, r *http.Request) {
 	room.room.Status = pb.RoomStatus_ROOM_STATUS_PLAYING
 	now := s.cfg.Now()
 	for _, ps := range room.players {
-		ps.player.Status = pb.PlayerStatus_PLAYER_STATUS_PLAYING
-		ps.lastHeartbeat = now
-		updateRoomPlayer(room.room, ps.player)
+		ps.Player.Status = pb.PlayerStatus_PLAYER_STATUS_PLAYING
+		ps.LastHeartbeat = now
+		updateRoomPlayer(room.room, ps.Player)
 	}
 	roomStateBroadcasts := s.buildRoomStateBroadcastsForConnectionsLocked(room)
 	broadcast := &pb.ScoreBroadcast{RoomId: req.RoomId, Scores: roomScores(room), UpdatedAt: now.UnixMilli()}
@@ -383,7 +335,7 @@ func (s *Server) handleGetRoomState(w http.ResponseWriter, r *http.Request) {
 		RoomFinished: room.room.Status == pb.RoomStatus_ROOM_STATUS_FINISHED,
 	}
 	if room.result != nil {
-		resp.Result = buildRoomResult(room.result, req.Username)
+		resp.Result = service.BuildRoomResult(room.result, req.Username)
 	}
 	s.writeProto(w, http.StatusOK, resp)
 }
@@ -397,16 +349,14 @@ func (s *Server) handleGetRoomResult(w http.ResponseWriter, r *http.Request) {
 	s.mu.RLock()
 	room, _, err := s.lookupRoomPlayer(req.RoomId, req.Username)
 	if err == nil && room.result != nil {
-		res := buildRoomResult(room.result, req.Username)
+		res := service.BuildRoomResult(room.result, req.Username)
 		s.mu.RUnlock()
 		s.writeProto(w, http.StatusOK, &pb.GetRoomResultResponse{Result: res})
 		return
 	}
 	s.mu.RUnlock()
 
-	var row persistedResult
-	err = s.db.QueryRow(`SELECT room_id, player_a_username, player_b_username, player_a_score, player_b_score, winner_username, finished_at, player_a_finish_reason, player_b_finish_reason FROM room_results WHERE room_id = ?`, req.RoomId).
-		Scan(&row.roomID, &row.playerAUsername, &row.playerBUsername, &row.playerAScore, &row.playerBScore, &row.winnerUsername, &row.finishedAt, &row.playerAFinishReason, &row.playerBFinishReason)
+	row, err := s.repo.FindRoomResult(req.RoomId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "room result not ready", http.StatusConflict)
@@ -415,7 +365,7 @@ func (s *Server) handleGetRoomResult(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	s.writeProto(w, http.StatusOK, &pb.GetRoomResultResponse{Result: buildRoomResult(&row, req.Username)})
+	s.writeProto(w, http.StatusOK, &pb.GetRoomResultResponse{Result: service.BuildRoomResult(row, req.Username)})
 }
 
 func (s *Server) handleLeaderboard(w http.ResponseWriter, r *http.Request) {
@@ -429,22 +379,12 @@ func (s *Server) handleLeaderboard(w http.ResponseWriter, r *http.Request) {
 		limit = 20
 	}
 	offset := req.Offset
-	rows, err := s.db.Query(`SELECT username, best_score, win_count, game_count, updated_at, avatar_id FROM leaderboard ORDER BY best_score DESC, updated_at ASC, username ASC LIMIT ? OFFSET ?`, limit, offset)
+	entries, err := s.repo.ListLeaderboard(limit, offset)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer rows.Close()
-	resp := &pb.GetLeaderboardResponse{}
-	for rows.Next() {
-		entry := &pb.LeaderboardEntry{}
-		if err := rows.Scan(&entry.Username, &entry.BestScore, &entry.WinCount, &entry.GameCount, &entry.UpdatedAt, &entry.AvatarId); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		resp.Entries = append(resp.Entries, entry)
-	}
-	s.writeProto(w, http.StatusOK, resp)
+	s.writeProto(w, http.StatusOK, &pb.GetLeaderboardResponse{Entries: entries})
 }
 
 func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
@@ -464,7 +404,7 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	}
 	oldConn := room.conns[username]
 	room.conns[username] = &clientConn{conn: conn}
-	player.lastHeartbeat = s.cfg.Now()
+	player.LastHeartbeat = s.cfg.Now()
 	broadcast := s.buildRoomStateBroadcastLocked(room, username)
 	s.mu.Unlock()
 	if oldConn != nil {
@@ -516,7 +456,7 @@ func (s *Server) processClientMessage(roomID, username string, payload []byte) e
 			return errors.New("heartbeat identity mismatch")
 		}
 		// 心跳只刷新服务端最后接收时间，供 9 秒超时 + 3 秒复检判断使用。
-		player.lastHeartbeat = s.cfg.Now()
+		player.LastHeartbeat = s.cfg.Now()
 		return nil
 	case *pb.WsMessage_PlayerDefeatEvent:
 		event := msg.PlayerDefeatEvent
@@ -526,17 +466,17 @@ func (s *Server) processClientMessage(roomID, username string, payload []byte) e
 		if room.room.Status != pb.RoomStatus_ROOM_STATUS_PLAYING {
 			return errors.New("room is not playing")
 		}
-		if player.player.Status == pb.PlayerStatus_PLAYER_STATUS_FINISHED {
+		if player.Player.Status == pb.PlayerStatus_PLAYER_STATUS_FINISHED {
 			return errors.New("player already finished")
 		}
 		// 击败事件也会刷新最后活跃时间，避免玩家持续作战时因漏心跳被误判掉线。
-		player.lastHeartbeat = s.cfg.Now()
-		if _, ok := player.defeatEventIDs[event.ClientEventId]; ok {
+		player.LastHeartbeat = s.cfg.Now()
+		if _, ok := player.DefeatEventIDs[event.ClientEventId]; ok {
 			return nil
 		}
-		player.defeatEventIDs[event.ClientEventId] = struct{}{}
+		player.DefeatEventIDs[event.ClientEventId] = struct{}{}
 		// 最终计分只以 enemy_type 为准，score_delta 不参与权威累计。
-		player.score += enemyScore(event.EnemyType)
+		player.Score += service.EnemyScore(event.EnemyType)
 		broadcast := &pb.ScoreBroadcast{RoomId: roomID, Scores: roomScores(room), UpdatedAt: s.cfg.Now().UnixMilli()}
 		go s.broadcastToConnections(s.snapshotConnectionsLocked(room), broadcast)
 		return nil
@@ -545,8 +485,8 @@ func (s *Server) processClientMessage(roomID, username string, payload []byte) e
 		if event.RoomId != roomID || event.Username != username {
 			return errors.New("game over identity mismatch")
 		}
-		player.lastHeartbeat = s.cfg.Now()
-		if player.player.Status == pb.PlayerStatus_PLAYER_STATUS_FINISHED {
+		player.LastHeartbeat = s.cfg.Now()
+		if player.Player.Status == pb.PlayerStatus_PLAYER_STATUS_FINISHED {
 			return nil
 		}
 		// 主动结束只改变结束状态，最终分数仍以服务端当前累计值为准。
@@ -562,18 +502,17 @@ func (s *Server) processClientMessage(roomID, username string, payload []byte) e
 func (s *Server) finishPlayerLocked(room *roomState, username string, reason pb.PlayerFinishReason) error {
 	player := room.players[username]
 	// 一旦玩家被服务端标记结束，该玩家本局分数立即冻结，后续击败事件不再生效。
-	player.player.Status = pb.PlayerStatus_PLAYER_STATUS_FINISHED
-	player.finishReason = reason
-	updateRoomPlayer(room.room, player.player)
-	if err := s.applyLeaderboardProgressLocked(player.player, player.score); err != nil {
+	player.Player.Status = pb.PlayerStatus_PLAYER_STATUS_FINISHED
+	player.FinishReason = reason
+	updateRoomPlayer(room.room, player.Player)
+	if err := s.applyLeaderboardProgressLocked(player.Player, player.Score); err != nil {
 		return err
 	}
-	player.leaderboardSynced = true
 	roomStateBroadcasts := s.buildRoomStateBroadcastsForConnectionsLocked(room)
 	broadcast := &pb.ScoreBroadcast{RoomId: room.room.RoomId, Scores: roomScores(room), UpdatedAt: s.cfg.Now().UnixMilli()}
 	connections := s.snapshotConnectionsLocked(room)
 	if allPlayers(room, func(ps *playerState) bool {
-		return ps.player.Status == pb.PlayerStatus_PLAYER_STATUS_FINISHED
+		return ps.Player.Status == pb.PlayerStatus_PLAYER_STATUS_FINISHED
 	}) {
 		// 只有双方都结束后，房间才进入最终完成态并广播整局结算。
 		room.room.Status = pb.RoomStatus_ROOM_STATUS_FINISHED
@@ -581,7 +520,7 @@ func (s *Server) finishPlayerLocked(room *roomState, username string, reason pb.
 		roomStateBroadcasts = s.buildRoomStateBroadcastsForConnectionsLocked(room)
 		go s.broadcastRoomStateBroadcasts(connections, roomStateBroadcasts)
 		go s.broadcastToConnections(connections, broadcast)
-		go s.broadcastToConnections(connections, &pb.GameFinishedBroadcast{RoomId: room.room.RoomId, Finished: true, Result: buildRoomResult(result, "")})
+		go s.broadcastToConnections(connections, &pb.GameFinishedBroadcast{RoomId: room.room.RoomId, Finished: true, Result: service.BuildRoomResult(result, "")})
 		return nil
 	}
 	go s.broadcastRoomStateBroadcasts(connections, roomStateBroadcasts)
@@ -593,30 +532,9 @@ func (s *Server) finalizeRoomLocked(room *roomState) *persistedResult {
 	if room.result != nil {
 		return room.result
 	}
-	aName := room.playerOrder[0]
-	bName := room.playerOrder[1]
-	a := room.players[aName]
-	b := room.players[bName]
-	result := &persistedResult{
-		roomID:              room.room.RoomId,
-		playerAUsername:     aName,
-		playerBUsername:     bName,
-		playerAScore:        a.score,
-		playerBScore:        b.score,
-		finishedAt:          s.cfg.Now().UnixMilli(),
-		playerAFinishReason: a.finishReason,
-		playerBFinishReason: b.finishReason,
-	}
-	switch {
-	case a.score > b.score:
-		result.winnerUsername = aName
-	case b.score > a.score:
-		result.winnerUsername = bName
-	default:
-		result.winnerUsername = ""
-	}
-	if !room.winCountApplied && result.winnerUsername != "" {
-		if err := s.applyWinnerWinCountLocked(result.winnerUsername); err != nil {
+	result := service.FinalizeResult(room.room.RoomId, room.playerOrder, room.players, s.cfg.Now().UnixMilli())
+	if !room.winCountApplied && result.WinnerUsername != "" {
+		if err := s.applyWinnerWinCountLocked(result.WinnerUsername); err != nil {
 			log.Printf("update winner win count failed: %v", err)
 		} else {
 			room.winCountApplied = true
@@ -630,29 +548,15 @@ func (s *Server) finalizeRoomLocked(room *roomState) *persistedResult {
 }
 
 func (s *Server) persistResultLocked(result *persistedResult) error {
-	_, err := s.db.Exec(`INSERT INTO room_results (room_id, player_a_username, player_b_username, player_a_score, player_b_score, winner_username, player_a_finish_reason, player_b_finish_reason, finished_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-		ON CONFLICT(room_id) DO UPDATE SET player_a_score = excluded.player_a_score, player_b_score = excluded.player_b_score, winner_username = excluded.winner_username,
-		player_a_finish_reason = excluded.player_a_finish_reason, player_b_finish_reason = excluded.player_b_finish_reason, finished_at = excluded.finished_at`,
-		result.roomID, result.playerAUsername, result.playerBUsername, result.playerAScore, result.playerBScore, result.winnerUsername, result.playerAFinishReason, result.playerBFinishReason, result.finishedAt)
-	return err
+	return s.repo.SaveRoomResult(result)
 }
 
 func (s *Server) applyLeaderboardProgressLocked(player *pb.Player, score int32) error {
-	now := s.cfg.Now().UnixMilli()
-	_, err := s.db.Exec(`INSERT INTO leaderboard (username, best_score, win_count, game_count, avatar_id, updated_at)
-		VALUES (?, ?, 0, 1, ?, ?)
-		ON CONFLICT(username) DO UPDATE SET
-		best_score = CASE WHEN excluded.best_score > leaderboard.best_score THEN excluded.best_score ELSE leaderboard.best_score END,
-		game_count = leaderboard.game_count + 1,
-		avatar_id = excluded.avatar_id,
-		updated_at = CASE WHEN excluded.best_score > leaderboard.best_score THEN excluded.updated_at ELSE leaderboard.updated_at END`, player.Username, score, player.AvatarId, now)
-	return err
+	return s.repo.UpsertLeaderboardProgress(player, score, s.cfg.Now().UnixMilli())
 }
 
 func (s *Server) applyWinnerWinCountLocked(username string) error {
-	_, err := s.db.Exec(`UPDATE leaderboard SET win_count = win_count + 1 WHERE username = ?`, username)
-	return err
+	return s.repo.IncrementWinnerWinCount(username)
 }
 
 func (s *Server) monitorHeartbeats() {
@@ -678,15 +582,15 @@ func (s *Server) scanHeartbeatTimeouts() {
 			continue
 		}
 		for username, player := range room.players {
-			if player.player.Status == pb.PlayerStatus_PLAYER_STATUS_FINISHED {
+			if player.Player.Status == pb.PlayerStatus_PLAYER_STATUS_FINISHED {
 				continue
 			}
-			elapsed := now.Sub(player.lastHeartbeat)
+			elapsed := now.Sub(player.LastHeartbeat)
 			// 协议要求 9 秒超时后再给 3 秒复检窗口，因此总阈值为 timeout + recheck。
 			if elapsed < s.cfg.HeartbeatTimeout+s.cfg.HeartbeatRecheck {
 				continue
 			}
-			log.Printf("heartbeat disconnect room=%s user=%s elapsed=%s score=%d", room.room.RoomId, username, elapsed, player.score)
+			log.Printf("heartbeat disconnect room=%s user=%s elapsed=%s score=%d", room.room.RoomId, username, elapsed, player.Score)
 			if err := s.finishPlayerLocked(room, username, pb.PlayerFinishReason_PLAYER_FINISH_REASON_DISCONNECTED); err != nil {
 				log.Printf("finish disconnected player failed: %v", err)
 			}
@@ -794,10 +698,10 @@ func roomScores(room *roomState) []*pb.RoomPlayerScore {
 		ps := room.players[username]
 		scores = append(scores, &pb.RoomPlayerScore{
 			Username:     username,
-			Score:        ps.score,
-			Finished:     ps.player.Status == pb.PlayerStatus_PLAYER_STATUS_FINISHED,
-			Status:       ps.player.Status,
-			FinishReason: ps.finishReason,
+			Score:        ps.Score,
+			Finished:     ps.Player.Status == pb.PlayerStatus_PLAYER_STATUS_FINISHED,
+			Status:       ps.Player.Status,
+			FinishReason: ps.FinishReason,
 		})
 	}
 	return scores
@@ -811,7 +715,7 @@ func (s *Server) buildRoomStateBroadcastLocked(room *roomState, username string)
 		UpdatedAt:    s.cfg.Now().UnixMilli(),
 	}
 	if room.result != nil {
-		broadcast.Result = buildRoomResult(room.result, username)
+		broadcast.Result = service.BuildRoomResult(room.result, username)
 	}
 	return broadcast
 }
@@ -837,34 +741,6 @@ func (s *Server) broadcastRoomStateBroadcasts(connections []*clientConn, broadca
 	}
 }
 
-func buildRoomResult(result *persistedResult, username string) *pb.RoomResult {
-	return &pb.RoomResult{
-		RoomId:              result.roomID,
-		PlayerAUsername:     result.playerAUsername,
-		PlayerBUsername:     result.playerBUsername,
-		PlayerAScore:        result.playerAScore,
-		PlayerBScore:        result.playerBScore,
-		WinnerUsername:      result.winnerUsername,
-		SelfResult:          selfResult(result, username),
-		FinishedAt:          result.finishedAt,
-		PlayerAFinishReason: result.playerAFinishReason,
-		PlayerBFinishReason: result.playerBFinishReason,
-	}
-}
-
-func selfResult(result *persistedResult, username string) pb.GameResultType {
-	if username == "" {
-		return pb.GameResultType_GAME_RESULT_UNSPECIFIED
-	}
-	if result.winnerUsername == "" {
-		return pb.GameResultType_GAME_RESULT_DRAW
-	}
-	if result.winnerUsername == username {
-		return pb.GameResultType_GAME_RESULT_WIN
-	}
-	return pb.GameResultType_GAME_RESULT_LOSE
-}
-
 func cloneRoom(room *pb.Room) *pb.Room {
 	return proto.Clone(room).(*pb.Room)
 }
@@ -888,27 +764,6 @@ func allPlayers(room *roomState, fn func(*playerState) bool) bool {
 		}
 	}
 	return true
-}
-
-func enemyScore(enemyType pb.EnemyType) int32 {
-	switch enemyType {
-	case pb.EnemyType_ENEMY_TYPE_ELITE:
-		return 20
-	case pb.EnemyType_ENEMY_TYPE_BOSS:
-		return 50
-	default:
-		return 10
-	}
-}
-
-func normalizeRoomDifficulty(difficulty pb.RoomDifficulty) pb.RoomDifficulty {
-	switch difficulty {
-	case pb.RoomDifficulty_ROOM_DIFFICULTY_EASY,
-		pb.RoomDifficulty_ROOM_DIFFICULTY_HARD:
-		return difficulty
-	default:
-		return pb.RoomDifficulty_ROOM_DIFFICULTY_NORMAL
-	}
 }
 
 func newRoomID(now time.Time) string {
