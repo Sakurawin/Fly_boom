@@ -268,17 +268,19 @@ func (s *Server) handleStartGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	room, player, err := s.lookupRoomPlayer(req.RoomId, req.Username)
 	if err != nil {
+		s.mu.Unlock()
 		s.writeLookupError(w, err)
 		return
 	}
 	if !player.player.IsHost {
+		s.mu.Unlock()
 		http.Error(w, "only host can start", http.StatusForbidden)
 		return
 	}
 	if room.room.Status != pb.RoomStatus_ROOM_STATUS_READY {
+		s.mu.Unlock()
 		http.Error(w, "room not ready", http.StatusConflict)
 		return
 	}
@@ -289,7 +291,12 @@ func (s *Server) handleStartGame(w http.ResponseWriter, r *http.Request) {
 		ps.lastHeartbeat = now
 		updateRoomPlayer(room.room, ps.player)
 	}
-	s.writeProto(w, http.StatusOK, &pb.StartGameResponse{Room: cloneRoom(room.room), Started: true})
+	broadcast := &pb.ScoreBroadcast{RoomId: req.RoomId, Scores: roomScores(room), UpdatedAt: now.UnixMilli()}
+	connections := s.snapshotConnectionsLocked(room)
+	responseRoom := cloneRoom(room.room)
+	s.mu.Unlock()
+	go s.broadcastToConnections(connections, broadcast)
+	s.writeProto(w, http.StatusOK, &pb.StartGameResponse{Room: responseRoom, Started: true})
 }
 
 func (s *Server) handleGetRoomState(w http.ResponseWriter, r *http.Request) {
