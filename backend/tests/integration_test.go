@@ -174,6 +174,36 @@ func TestDisconnectFreezesScoreAndStateRecovery(t *testing.T) {
 	}
 }
 
+func TestStartGameBroadcastsPlayingStatusToOtherPlayer(t *testing.T) {
+	server := newTestServer(t)
+	defer server.Close()
+
+	createResp := postProto(t, server.URL, "/rooms/create", &pb.CreateRoomRequest{Username: "alice"}, &pb.CreateRoomResponse{}).(*pb.CreateRoomResponse)
+	roomID := createResp.Room.RoomId
+	postProto(t, server.URL, "/rooms/join", &pb.JoinRoomRequest{RoomId: roomID, Username: "bob"}, &pb.JoinRoomResponse{})
+	postProto(t, server.URL, "/rooms/ready", &pb.ReadyRoomRequest{RoomId: roomID, Username: "alice"}, &pb.ReadyRoomResponse{})
+	postProto(t, server.URL, "/rooms/ready", &pb.ReadyRoomRequest{RoomId: roomID, Username: "bob"}, &pb.ReadyRoomResponse{})
+
+	aliceWS := openWS(t, server.URL, roomID, "alice")
+	defer aliceWS.Close()
+	bobWS := openWS(t, server.URL, roomID, "bob")
+	defer bobWS.Close()
+
+	startResp := postProto(t, server.URL, "/rooms/start", &pb.StartGameRequest{RoomId: roomID, Username: "alice"}, &pb.StartGameResponse{}).(*pb.StartGameResponse)
+	if !startResp.Started {
+		t.Fatal("expected room to start")
+	}
+
+	broadcast := readScoreBroadcast(t, bobWS)
+	assertScoreStatus(t, broadcast, "alice", 0, pb.PlayerStatus_PLAYER_STATUS_PLAYING)
+	assertScoreStatus(t, broadcast, "bob", 0, pb.PlayerStatus_PLAYER_STATUS_PLAYING)
+	stateResp := postProto(t, server.URL, "/rooms/state", &pb.GetRoomStateRequest{RoomId: roomID, Username: "bob"}, &pb.GetRoomStateResponse{}).(*pb.GetRoomStateResponse)
+	if stateResp.Room.GetStatus() != pb.RoomStatus_ROOM_STATUS_PLAYING {
+		t.Fatalf("room status = %v, want PLAYING", stateResp.Room.GetStatus())
+	}
+	_ = aliceWS
+}
+
 func TestCreateRoomReturnsSixDigitNumericRoomID(t *testing.T) {
 	server := newTestServer(t)
 	defer server.Close()
@@ -398,6 +428,20 @@ func assertScore(t *testing.T, broadcast *pb.ScoreBroadcast, username string, wa
 		}
 		if score.Score != wantScore || score.Finished != wantFinished || score.FinishReason != wantReason {
 			t.Fatalf("score[%s] = %+v, want score=%d finished=%v reason=%v", username, score, wantScore, wantFinished, wantReason)
+		}
+		return
+	}
+	t.Fatalf("score for %s not found", username)
+}
+
+func assertScoreStatus(t *testing.T, broadcast *pb.ScoreBroadcast, username string, wantScore int32, wantStatus pb.PlayerStatus) {
+	t.Helper()
+	for _, score := range broadcast.Scores {
+		if score.Username != username {
+			continue
+		}
+		if score.Score != wantScore || score.Status != wantStatus {
+			t.Fatalf("score[%s] = %+v, want score=%d status=%v", username, score, wantScore, wantStatus)
 		}
 		return
 	}
