@@ -15,6 +15,7 @@
     <string name="hud_score_value">得分: %1$d</string>
     <string name="hud_hp_value">生命: %1$d</string>
     <string name="hud_room_state_default">房间: 未连接</string>
+    <string name="hud_room_state_single_player">单人模式</string>
     <string name="hud_room_state_value">房间 %1$s | 连接 %2$s</string>
     <string name="hud_multiplayer_score_line">%1$s %2$d</string>
     <string name="hud_multiplayer_self_default">我方 0</string>
@@ -32,6 +33,8 @@
     <string name="game_over_name_hint">输入飞行员名称</string>
     <string name="game_over_avatar_title">选择头像</string>
     <string name="game_over_submit">查看全服榜</string>
+    <string name="game_over_replay">再来一局</string>
+    <string name="game_over_single_player_ready">单人模式已结算，可直接再来一局或返回菜单</string>
     <string name="default_player_name">飞行员</string>
     <string name="leaderboard_title">排行榜</string>
     <string name="leaderboard_title_with_difficulty">排行榜（%1$s）</string>
@@ -67,6 +70,7 @@
     <string name="multiplayer_room_status_label">房间状态</string>
     <string name="multiplayer_room_players_label">房间成员</string>
     <string name="multiplayer_room_connection_label">连接状态</string>
+    <string name="multiplayer_room_difficulty_label">共享难度</string>
     <string name="multiplayer_room_stage_created">房间创建成功</string>
     <string name="multiplayer_room_stage_waiting_player">等待对手加入</string>
     <string name="multiplayer_room_stage_player_joined">对手已加入</string>
@@ -103,4 +107,6 @@
     <string name="game_result_lose">失败</string>
     <string name="game_result_draw">平局</string>
     <string name="game_result_pending">结算中</string>
+    <string name="sound_on">声音开</string>
+    <string name="sound_off">声音关</string>
 </resources>

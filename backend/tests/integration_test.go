@@ -178,7 +178,7 @@ func TestStartGameBroadcastsPlayingStatusToOtherPlayer(t *testing.T) {
 	server := newTestServer(t)
 	defer server.Close()
 
-	createResp := postProto(t, server.URL, "/rooms/create", &pb.CreateRoomRequest{Username: "alice"}, &pb.CreateRoomResponse{}).(*pb.CreateRoomResponse)
+	createResp := postProto(t, server.URL, "/rooms/create", &pb.CreateRoomRequest{Username: "alice", Difficulty: pb.RoomDifficulty_ROOM_DIFFICULTY_HARD}, &pb.CreateRoomResponse{}).(*pb.CreateRoomResponse)
 	roomID := createResp.Room.RoomId
 	postProto(t, server.URL, "/rooms/join", &pb.JoinRoomRequest{RoomId: roomID, Username: "bob"}, &pb.JoinRoomResponse{})
 	postProto(t, server.URL, "/rooms/ready", &pb.ReadyRoomRequest{RoomId: roomID, Username: "alice"}, &pb.ReadyRoomResponse{})
@@ -201,7 +201,162 @@ func TestStartGameBroadcastsPlayingStatusToOtherPlayer(t *testing.T) {
 	if stateResp.Room.GetStatus() != pb.RoomStatus_ROOM_STATUS_PLAYING {
 		t.Fatalf("room status = %v, want PLAYING", stateResp.Room.GetStatus())
 	}
+	if stateResp.Room.GetDifficulty() != pb.RoomDifficulty_ROOM_DIFFICULTY_HARD {
+		t.Fatalf("room difficulty = %v, want HARD", stateResp.Room.GetDifficulty())
+	}
 	_ = aliceWS
+}
+
+func TestRoomDifficultyInitializationAndBroadcast(t *testing.T) {
+	server := newTestServer(t)
+	defer server.Close()
+
+	createResp := postProto(t, server.URL, "/rooms/create", &pb.CreateRoomRequest{
+		Username:   "alice",
+		AvatarId:   "pilot-alpha",
+		Difficulty: pb.RoomDifficulty_ROOM_DIFFICULTY_HARD,
+	}, &pb.CreateRoomResponse{}).(*pb.CreateRoomResponse)
+	if createResp.Room.GetDifficulty() != pb.RoomDifficulty_ROOM_DIFFICULTY_HARD {
+		t.Fatalf("created room difficulty = %v, want HARD", createResp.Room.GetDifficulty())
+	}
+	roomID := createResp.Room.RoomId
+	aliceWS := openWS(t, server.URL, roomID, "alice")
+	defer aliceWS.Close()
+
+	initial := readRoomStateBroadcast(t, aliceWS)
+	if initial.Room.GetDifficulty() != pb.RoomDifficulty_ROOM_DIFFICULTY_HARD {
+		t.Fatalf("initial room broadcast difficulty = %v, want HARD", initial.Room.GetDifficulty())
+	}
+
+	postProto(t, server.URL, "/rooms/join", &pb.JoinRoomRequest{RoomId: roomID, Username: "bob", AvatarId: "pilot-bravo"}, &pb.JoinRoomResponse{})
+	joined := readRoomStateBroadcast(t, aliceWS)
+	if joined.Room.GetDifficulty() != pb.RoomDifficulty_ROOM_DIFFICULTY_HARD {
+		t.Fatalf("joined room difficulty = %v, want HARD", joined.Room.GetDifficulty())
+	}
+
+	bobWS := openWS(t, server.URL, roomID, "bob")
+	defer bobWS.Close()
+	bobInitial := readRoomStateBroadcast(t, bobWS)
+	if bobInitial.Room.GetDifficulty() != pb.RoomDifficulty_ROOM_DIFFICULTY_HARD {
+		t.Fatalf("bob initial room difficulty = %v, want HARD", bobInitial.Room.GetDifficulty())
+	}
+
+	updateResp := postProto(t, server.URL, "/rooms/difficulty", &pb.UpdateRoomDifficultyRequest{
+		RoomId:     roomID,
+		Username:   "alice",
+		Difficulty: pb.RoomDifficulty_ROOM_DIFFICULTY_EASY,
+	}, &pb.UpdateRoomDifficultyResponse{}).(*pb.UpdateRoomDifficultyResponse)
+	if updateResp.Room.GetDifficulty() != pb.RoomDifficulty_ROOM_DIFFICULTY_EASY {
+		t.Fatalf("updated room difficulty = %v, want EASY", updateResp.Room.GetDifficulty())
+	}
+
+	hostBroadcast := readRoomStateBroadcast(t, aliceWS)
+	guestBroadcast := readRoomStateBroadcast(t, bobWS)
+	if hostBroadcast.Room.GetDifficulty() != pb.RoomDifficulty_ROOM_DIFFICULTY_EASY {
+		t.Fatalf("host broadcast difficulty = %v, want EASY", hostBroadcast.Room.GetDifficulty())
+	}
+	if guestBroadcast.Room.GetDifficulty() != pb.RoomDifficulty_ROOM_DIFFICULTY_EASY {
+		t.Fatalf("guest broadcast difficulty = %v, want EASY", guestBroadcast.Room.GetDifficulty())
+	}
+
+	stateResp := postProto(t, server.URL, "/rooms/state", &pb.GetRoomStateRequest{RoomId: roomID, Username: "bob"}, &pb.GetRoomStateResponse{}).(*pb.GetRoomStateResponse)
+	if stateResp.Room.GetDifficulty() != pb.RoomDifficulty_ROOM_DIFFICULTY_EASY {
+		t.Fatalf("state room difficulty = %v, want EASY", stateResp.Room.GetDifficulty())
+	}
+}
+
+func TestGuestCannotChangeRoomDifficulty(t *testing.T) {
+	server := newTestServer(t)
+	defer server.Close()
+
+	createResp := postProto(t, server.URL, "/rooms/create", &pb.CreateRoomRequest{Username: "alice"}, &pb.CreateRoomResponse{}).(*pb.CreateRoomResponse)
+	roomID := createResp.Room.RoomId
+	postProto(t, server.URL, "/rooms/join", &pb.JoinRoomRequest{RoomId: roomID, Username: "bob"}, &pb.JoinRoomResponse{})
+
+	resp, err := postProtoRaw(server.URL, "/rooms/difficulty", &pb.UpdateRoomDifficultyRequest{
+		RoomId:     roomID,
+		Username:   "bob",
+		Difficulty: pb.RoomDifficulty_ROOM_DIFFICULTY_HARD,
+	})
+	if err != nil {
+		t.Fatalf("post raw update difficulty: %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusForbidden {
+		t.Fatalf("guest update status = %d, want %d", resp.StatusCode, http.StatusForbidden)
+	}
+
+	stateResp := postProto(t, server.URL, "/rooms/state", &pb.GetRoomStateRequest{RoomId: roomID, Username: "alice"}, &pb.GetRoomStateResponse{}).(*pb.GetRoomStateResponse)
+	if stateResp.Room.GetDifficulty() != pb.RoomDifficulty_ROOM_DIFFICULTY_NORMAL {
+		t.Fatalf("room difficulty after guest update = %v, want NORMAL", stateResp.Room.GetDifficulty())
+	}
+}
+
+func TestCannotChangeRoomDifficultyAfterStart(t *testing.T) {
+	server := newTestServer(t)
+	defer server.Close()
+
+	createResp := postProto(t, server.URL, "/rooms/create", &pb.CreateRoomRequest{Username: "alice"}, &pb.CreateRoomResponse{}).(*pb.CreateRoomResponse)
+	roomID := createResp.Room.RoomId
+	postProto(t, server.URL, "/rooms/join", &pb.JoinRoomRequest{RoomId: roomID, Username: "bob"}, &pb.JoinRoomResponse{})
+	postProto(t, server.URL, "/rooms/ready", &pb.ReadyRoomRequest{RoomId: roomID, Username: "alice"}, &pb.ReadyRoomResponse{})
+	postProto(t, server.URL, "/rooms/ready", &pb.ReadyRoomRequest{RoomId: roomID, Username: "bob"}, &pb.ReadyRoomResponse{})
+	postProto(t, server.URL, "/rooms/start", &pb.StartGameRequest{RoomId: roomID, Username: "alice"}, &pb.StartGameResponse{})
+
+	resp, err := postProtoRaw(server.URL, "/rooms/difficulty", &pb.UpdateRoomDifficultyRequest{
+		RoomId:     roomID,
+		Username:   "alice",
+		Difficulty: pb.RoomDifficulty_ROOM_DIFFICULTY_HARD,
+	})
+	if err != nil {
+		t.Fatalf("post raw update difficulty after start: %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusConflict {
+		t.Fatalf("update after start status = %d, want %d", resp.StatusCode, http.StatusConflict)
+	}
+}
+
+func TestFinalResultBroadcastUnblocksFinishedClient(t *testing.T) {
+	server := newTestServer(t)
+	defer server.Close()
+
+	createResp := postProto(t, server.URL, "/rooms/create", &pb.CreateRoomRequest{Username: "alice"}, &pb.CreateRoomResponse{}).(*pb.CreateRoomResponse)
+	roomID := createResp.Room.RoomId
+	postProto(t, server.URL, "/rooms/join", &pb.JoinRoomRequest{RoomId: roomID, Username: "bob"}, &pb.JoinRoomResponse{})
+	postProto(t, server.URL, "/rooms/ready", &pb.ReadyRoomRequest{RoomId: roomID, Username: "alice"}, &pb.ReadyRoomResponse{})
+	postProto(t, server.URL, "/rooms/ready", &pb.ReadyRoomRequest{RoomId: roomID, Username: "bob"}, &pb.ReadyRoomResponse{})
+	postProto(t, server.URL, "/rooms/start", &pb.StartGameRequest{RoomId: roomID, Username: "alice"}, &pb.StartGameResponse{})
+
+	aliceWS := openWS(t, server.URL, roomID, "alice")
+	defer aliceWS.Close()
+	bobWS := openWS(t, server.URL, roomID, "bob")
+	defer bobWS.Close()
+
+	writeProtoWS(t, aliceWS, wrapDefeat(roomID, "alice", pb.EnemyType_ENEMY_TYPE_BOSS, "a-1"))
+	readScoreBroadcast(t, aliceWS)
+	readScoreBroadcast(t, bobWS)
+
+	writeProtoWS(t, aliceWS, wrapGameOver(roomID, "alice", 50, "done"))
+	readRoomStateOrScoreThenRoomState(t, aliceWS)
+	readRoomStateOrScoreThenRoomState(t, bobWS)
+
+	writeProtoWS(t, bobWS, wrapDefeat(roomID, "bob", pb.EnemyType_ENEMY_TYPE_MOB, "b-1"))
+	readScoreBroadcast(t, aliceWS)
+	readScoreBroadcast(t, bobWS)
+	writeProtoWS(t, bobWS, wrapGameOver(roomID, "bob", 10, "done"))
+
+	finalState := readRoomStateOrScoreThenRoomState(t, aliceWS)
+	if !finalState.GetRoomFinished() {
+		t.Fatal("alice final room state should be finished")
+	}
+	if finalState.GetResult() == nil {
+		t.Fatal("alice final room state should include result")
+	}
+	if finalState.GetResult().GetSelfResult() != pb.GameResultType_GAME_RESULT_WIN {
+		t.Fatalf("alice self result = %v, want WIN", finalState.GetResult().GetSelfResult())
+	}
+	_ = readGameFinished(t, bobWS)
 }
 
 func TestRoomStateBroadcastOnJoinAndReady(t *testing.T) {
@@ -470,6 +625,14 @@ func postProto(t *testing.T, baseURL, path string, req proto.Message, response p
 		t.Fatalf("unmarshal response: %v", err)
 	}
 	return response
+}
+
+func postProtoRaw(baseURL, path string, req proto.Message) (*http.Response, error) {
+	payload, err := proto.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+	return http.Post(baseURL+path, "application/x-protobuf", bytes.NewReader(payload))
 }
 
 func openWS(t *testing.T, baseURL, roomID, username string) *websocket.Conn {

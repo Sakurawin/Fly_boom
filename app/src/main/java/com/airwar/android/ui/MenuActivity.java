@@ -8,6 +8,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -56,6 +57,7 @@ public class MenuActivity extends AppCompatActivity {
         Button normalButton = findViewById(R.id.button_difficulty_normal);
         Button hardButton = findViewById(R.id.button_difficulty_hard);
         Button startButton = findViewById(R.id.button_start);
+        ToggleButton soundToggle = findViewById(R.id.button_sound_toggle);
         createRoomButton = findViewById(R.id.button_create_room);
         joinRoomButton = findViewById(R.id.button_join_room);
         Button readyRoomButton = findViewById(R.id.button_ready_room);
@@ -73,6 +75,8 @@ public class MenuActivity extends AppCompatActivity {
         bindBottomNav();
         buildAvatarSelector();
         bindSavedMultiplayerState();
+        soundToggle.setChecked(LocalMultiplayerPrefs.isSoundEnabled(this));
+        soundToggle.setOnCheckedChangeListener((buttonView, isChecked) -> LocalMultiplayerPrefs.saveSoundEnabled(this, isChecked));
 
         easyButton.setOnClickListener(v -> {
             selectedDifficulty = DIFFICULTY_EASY;
@@ -95,7 +99,7 @@ public class MenuActivity extends AppCompatActivity {
         joinRoomButton.setOnClickListener(v -> joinRoom());
         readyRoomButton.setVisibility(android.view.View.GONE);
         syncRoomStateButton.setVisibility(android.view.View.GONE);
-        startButton.setVisibility(android.view.View.GONE);
+        startButton.setOnClickListener(v -> startSinglePlayer());
     }
 
     @Override
@@ -199,7 +203,7 @@ public class MenuActivity extends AppCompatActivity {
         }
         LocalMultiplayerPrefs.saveBaseConfig(this, baseUrl, username, selectedAvatarId);
         setRoomEntryButtonsEnabled(false);
-        runRoomRequest(() -> multiplayerApi.createRoom(baseUrl, username, selectedAvatarId), response -> {
+        runRoomRequest(() -> multiplayerApi.createRoom(baseUrl, username, selectedAvatarId, selectedDifficulty), response -> {
             roomIdInput.setText(response.getRoom().getRoomId());
             LocalMultiplayerPrefs.saveRoomId(this, response.getRoom().getRoomId());
             MultiplayerSession.getInstance().configure(baseUrl, response.getRoom().getRoomId(), username, selectedAvatarId);
@@ -254,6 +258,13 @@ public class MenuActivity extends AppCompatActivity {
         roomIntent.putExtra(RoomActivity.EXTRA_DIFFICULTY, selectedDifficulty);
         startActivity(roomIntent);
         finish();
+    }
+
+    private void startSinglePlayer() {
+        Intent gameIntent = new Intent(this, GameActivity.class);
+        gameIntent.putExtra(GameActivity.EXTRA_DIFFICULTY, selectedDifficulty);
+        gameIntent.putExtra(GameActivity.EXTRA_IS_MULTIPLAYER, false);
+        startActivity(gameIntent);
     }
 
     private void updateRoomStatusText(AircraftWar.Room room, String roomId, String username) {

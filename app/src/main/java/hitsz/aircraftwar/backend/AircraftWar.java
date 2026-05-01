@@ -370,6 +370,117 @@ public final class AircraftWar {
 
   /**
    * <pre>
+   * 房间共享难度。单机可继续使用本地难度字符串，但联机房间必须使用统一枚举同步。
+   * </pre>
+   *
+   * Protobuf enum {@code hitsz.aircraftwar.backend.RoomDifficulty}
+   */
+  public enum RoomDifficulty
+      implements com.google.protobuf.Internal.EnumLite {
+    /**
+     * <code>ROOM_DIFFICULTY_UNSPECIFIED = 0;</code>
+     */
+    ROOM_DIFFICULTY_UNSPECIFIED(0),
+    /**
+     * <code>ROOM_DIFFICULTY_EASY = 1;</code>
+     */
+    ROOM_DIFFICULTY_EASY(1),
+    /**
+     * <code>ROOM_DIFFICULTY_NORMAL = 2;</code>
+     */
+    ROOM_DIFFICULTY_NORMAL(2),
+    /**
+     * <code>ROOM_DIFFICULTY_HARD = 3;</code>
+     */
+    ROOM_DIFFICULTY_HARD(3),
+    UNRECOGNIZED(-1),
+    ;
+
+    /**
+     * <code>ROOM_DIFFICULTY_UNSPECIFIED = 0;</code>
+     */
+    public static final int ROOM_DIFFICULTY_UNSPECIFIED_VALUE = 0;
+    /**
+     * <code>ROOM_DIFFICULTY_EASY = 1;</code>
+     */
+    public static final int ROOM_DIFFICULTY_EASY_VALUE = 1;
+    /**
+     * <code>ROOM_DIFFICULTY_NORMAL = 2;</code>
+     */
+    public static final int ROOM_DIFFICULTY_NORMAL_VALUE = 2;
+    /**
+     * <code>ROOM_DIFFICULTY_HARD = 3;</code>
+     */
+    public static final int ROOM_DIFFICULTY_HARD_VALUE = 3;
+
+
+    @java.lang.Override
+    public final int getNumber() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
+      return value;
+    }
+
+    /**
+     * @param value The number of the enum to look for.
+     * @return The enum associated with the given number.
+     * @deprecated Use {@link #forNumber(int)} instead.
+     */
+    @java.lang.Deprecated
+    public static RoomDifficulty valueOf(int value) {
+      return forNumber(value);
+    }
+
+    public static RoomDifficulty forNumber(int value) {
+      switch (value) {
+        case 0: return ROOM_DIFFICULTY_UNSPECIFIED;
+        case 1: return ROOM_DIFFICULTY_EASY;
+        case 2: return ROOM_DIFFICULTY_NORMAL;
+        case 3: return ROOM_DIFFICULTY_HARD;
+        default: return null;
+      }
+    }
+
+    public static com.google.protobuf.Internal.EnumLiteMap<RoomDifficulty>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static final com.google.protobuf.Internal.EnumLiteMap<
+        RoomDifficulty> internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<RoomDifficulty>() {
+            @java.lang.Override
+            public RoomDifficulty findValueByNumber(int number) {
+              return RoomDifficulty.forNumber(number);
+            }
+          };
+
+    public static com.google.protobuf.Internal.EnumVerifier 
+        internalGetVerifier() {
+      return RoomDifficultyVerifier.INSTANCE;
+    }
+
+    private static final class RoomDifficultyVerifier implements 
+         com.google.protobuf.Internal.EnumVerifier { 
+            static final com.google.protobuf.Internal.EnumVerifier           INSTANCE = new RoomDifficultyVerifier();
+            @java.lang.Override
+            public boolean isInRange(int number) {
+              return RoomDifficulty.forNumber(number) != null;
+            }
+          };
+
+    private final int value;
+
+    private RoomDifficulty(int value) {
+      this.value = value;
+    }
+
+    // @@protoc_insertion_point(enum_scope:hitsz.aircraftwar.backend.RoomDifficulty)
+  }
+
+  /**
+   * <pre>
    * 从当前玩家视角看到的对局结果。
    * </pre>
    *
@@ -1193,6 +1304,17 @@ public final class AircraftWar {
      * <code>repeated .hitsz.aircraftwar.backend.Player players = 3;</code>
      */
     int getPlayersCount();
+
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 4;</code>
+     * @return The enum numeric value on the wire for difficulty.
+     */
+    int getDifficultyValue();
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 4;</code>
+     * @return The difficulty.
+     */
+    hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty getDifficulty();
   }
   /**
    * <pre>
@@ -1391,6 +1513,48 @@ public final class AircraftWar {
     private void removePlayers(int index) {
       ensurePlayersIsMutable();
       players_.remove(index);
+    }
+
+    public static final int DIFFICULTY_FIELD_NUMBER = 4;
+    private int difficulty_;
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 4;</code>
+     * @return The enum numeric value on the wire for difficulty.
+     */
+    @java.lang.Override
+    public int getDifficultyValue() {
+      return difficulty_;
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 4;</code>
+     * @return The difficulty.
+     */
+    @java.lang.Override
+    public hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty getDifficulty() {
+      hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty result = hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty.forNumber(difficulty_);
+      return result == null ? hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty.UNRECOGNIZED : result;
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 4;</code>
+     * @param value The enum numeric value on the wire for difficulty to set.
+     */
+    private void setDifficultyValue(int value) {
+        difficulty_ = value;
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 4;</code>
+     * @param value The difficulty to set.
+     */
+    private void setDifficulty(hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty value) {
+      difficulty_ = value.getNumber();
+      
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 4;</code>
+     */
+    private void clearDifficulty() {
+      
+      difficulty_ = 0;
     }
 
     public static hitsz.aircraftwar.backend.AircraftWar.Room parseFrom(
@@ -1689,6 +1853,52 @@ public final class AircraftWar {
         return this;
       }
 
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 4;</code>
+       * @return The enum numeric value on the wire for difficulty.
+       */
+      @java.lang.Override
+      public int getDifficultyValue() {
+        return instance.getDifficultyValue();
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 4;</code>
+       * @param value The difficulty to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDifficultyValue(int value) {
+        copyOnWrite();
+        instance.setDifficultyValue(value);
+        return this;
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 4;</code>
+       * @return The difficulty.
+       */
+      @java.lang.Override
+      public hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty getDifficulty() {
+        return instance.getDifficulty();
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 4;</code>
+       * @param value The enum numeric value on the wire for difficulty to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDifficulty(hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty value) {
+        copyOnWrite();
+        instance.setDifficulty(value);
+        return this;
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearDifficulty() {
+        copyOnWrite();
+        instance.clearDifficulty();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:hitsz.aircraftwar.backend.Room)
     }
     @java.lang.Override
@@ -1709,10 +1919,11 @@ public final class AircraftWar {
               "status_",
               "players_",
               hitsz.aircraftwar.backend.AircraftWar.Player.class,
+              "difficulty_",
             };
             java.lang.String info =
-                "\u0000\u0003\u0000\u0000\u0001\u0003\u0003\u0000\u0001\u0000\u0001\u0208\u0002\f" +
-                "\u0003\u001b";
+                "\u0000\u0004\u0000\u0000\u0001\u0004\u0004\u0000\u0001\u0000\u0001\u0208\u0002\f" +
+                "\u0003\u001b\u0004\f";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through
@@ -4188,6 +4399,17 @@ public final class AircraftWar {
      */
     com.google.protobuf.ByteString
         getAvatarIdBytes();
+
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+     * @return The enum numeric value on the wire for difficulty.
+     */
+    int getDifficultyValue();
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+     * @return The difficulty.
+     */
+    hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty getDifficulty();
   }
   /**
    * <pre>
@@ -4297,6 +4519,48 @@ public final class AircraftWar {
       checkByteStringIsUtf8(value);
       avatarId_ = value.toStringUtf8();
       
+    }
+
+    public static final int DIFFICULTY_FIELD_NUMBER = 3;
+    private int difficulty_;
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+     * @return The enum numeric value on the wire for difficulty.
+     */
+    @java.lang.Override
+    public int getDifficultyValue() {
+      return difficulty_;
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+     * @return The difficulty.
+     */
+    @java.lang.Override
+    public hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty getDifficulty() {
+      hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty result = hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty.forNumber(difficulty_);
+      return result == null ? hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty.UNRECOGNIZED : result;
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+     * @param value The enum numeric value on the wire for difficulty to set.
+     */
+    private void setDifficultyValue(int value) {
+        difficulty_ = value;
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+     * @param value The difficulty to set.
+     */
+    private void setDifficulty(hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty value) {
+      difficulty_ = value.getNumber();
+      
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+     */
+    private void clearDifficulty() {
+      
+      difficulty_ = 0;
     }
 
     public static hitsz.aircraftwar.backend.AircraftWar.CreateRoomRequest parseFrom(
@@ -4496,6 +4760,52 @@ public final class AircraftWar {
         return this;
       }
 
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+       * @return The enum numeric value on the wire for difficulty.
+       */
+      @java.lang.Override
+      public int getDifficultyValue() {
+        return instance.getDifficultyValue();
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+       * @param value The difficulty to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDifficultyValue(int value) {
+        copyOnWrite();
+        instance.setDifficultyValue(value);
+        return this;
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+       * @return The difficulty.
+       */
+      @java.lang.Override
+      public hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty getDifficulty() {
+        return instance.getDifficulty();
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+       * @param value The enum numeric value on the wire for difficulty to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDifficulty(hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty value) {
+        copyOnWrite();
+        instance.setDifficulty(value);
+        return this;
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearDifficulty() {
+        copyOnWrite();
+        instance.clearDifficulty();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:hitsz.aircraftwar.backend.CreateRoomRequest)
     }
     @java.lang.Override
@@ -4514,10 +4824,11 @@ public final class AircraftWar {
             java.lang.Object[] objects = new java.lang.Object[] {
               "username_",
               "avatarId_",
+              "difficulty_",
             };
             java.lang.String info =
-                "\u0000\u0002\u0000\u0000\u0001\u0002\u0002\u0000\u0000\u0000\u0001\u0208\u0002\u0208" +
-                "";
+                "\u0000\u0003\u0000\u0000\u0001\u0003\u0003\u0000\u0000\u0000\u0001\u0208\u0002\u0208" +
+                "\u0003\f";
             return newMessageInfo(DEFAULT_INSTANCE, info, objects);
         }
         // fall through
@@ -6571,6 +6882,804 @@ public final class AircraftWar {
     private static volatile com.google.protobuf.Parser<ReadyRoomResponse> PARSER;
 
     public static com.google.protobuf.Parser<ReadyRoomResponse> parser() {
+      return DEFAULT_INSTANCE.getParserForType();
+    }
+  }
+
+  public interface UpdateRoomDifficultyRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:hitsz.aircraftwar.backend.UpdateRoomDifficultyRequest)
+      com.google.protobuf.MessageLiteOrBuilder {
+
+    /**
+     * <code>string room_id = 1;</code>
+     * @return The roomId.
+     */
+    java.lang.String getRoomId();
+    /**
+     * <code>string room_id = 1;</code>
+     * @return The bytes for roomId.
+     */
+    com.google.protobuf.ByteString
+        getRoomIdBytes();
+
+    /**
+     * <code>string username = 2;</code>
+     * @return The username.
+     */
+    java.lang.String getUsername();
+    /**
+     * <code>string username = 2;</code>
+     * @return The bytes for username.
+     */
+    com.google.protobuf.ByteString
+        getUsernameBytes();
+
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+     * @return The enum numeric value on the wire for difficulty.
+     */
+    int getDifficultyValue();
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+     * @return The difficulty.
+     */
+    hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty getDifficulty();
+  }
+  /**
+   * <pre>
+   * HTTP: 房主更新房间共享难度。
+   * </pre>
+   *
+   * Protobuf type {@code hitsz.aircraftwar.backend.UpdateRoomDifficultyRequest}
+   */
+  public  static final class UpdateRoomDifficultyRequest extends
+      com.google.protobuf.GeneratedMessageLite<
+          UpdateRoomDifficultyRequest, UpdateRoomDifficultyRequest.Builder> implements
+      // @@protoc_insertion_point(message_implements:hitsz.aircraftwar.backend.UpdateRoomDifficultyRequest)
+      UpdateRoomDifficultyRequestOrBuilder {
+    private UpdateRoomDifficultyRequest() {
+      roomId_ = "";
+      username_ = "";
+    }
+    public static final int ROOM_ID_FIELD_NUMBER = 1;
+    private java.lang.String roomId_;
+    /**
+     * <code>string room_id = 1;</code>
+     * @return The roomId.
+     */
+    @java.lang.Override
+    public java.lang.String getRoomId() {
+      return roomId_;
+    }
+    /**
+     * <code>string room_id = 1;</code>
+     * @return The bytes for roomId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getRoomIdBytes() {
+      return com.google.protobuf.ByteString.copyFromUtf8(roomId_);
+    }
+    /**
+     * <code>string room_id = 1;</code>
+     * @param value The roomId to set.
+     */
+    private void setRoomId(
+        java.lang.String value) {
+      value.getClass();
+  
+      roomId_ = value;
+    }
+    /**
+     * <code>string room_id = 1;</code>
+     */
+    private void clearRoomId() {
+      
+      roomId_ = getDefaultInstance().getRoomId();
+    }
+    /**
+     * <code>string room_id = 1;</code>
+     * @param value The bytes for roomId to set.
+     */
+    private void setRoomIdBytes(
+        com.google.protobuf.ByteString value) {
+      checkByteStringIsUtf8(value);
+      roomId_ = value.toStringUtf8();
+      
+    }
+
+    public static final int USERNAME_FIELD_NUMBER = 2;
+    private java.lang.String username_;
+    /**
+     * <code>string username = 2;</code>
+     * @return The username.
+     */
+    @java.lang.Override
+    public java.lang.String getUsername() {
+      return username_;
+    }
+    /**
+     * <code>string username = 2;</code>
+     * @return The bytes for username.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getUsernameBytes() {
+      return com.google.protobuf.ByteString.copyFromUtf8(username_);
+    }
+    /**
+     * <code>string username = 2;</code>
+     * @param value The username to set.
+     */
+    private void setUsername(
+        java.lang.String value) {
+      value.getClass();
+  
+      username_ = value;
+    }
+    /**
+     * <code>string username = 2;</code>
+     */
+    private void clearUsername() {
+      
+      username_ = getDefaultInstance().getUsername();
+    }
+    /**
+     * <code>string username = 2;</code>
+     * @param value The bytes for username to set.
+     */
+    private void setUsernameBytes(
+        com.google.protobuf.ByteString value) {
+      checkByteStringIsUtf8(value);
+      username_ = value.toStringUtf8();
+      
+    }
+
+    public static final int DIFFICULTY_FIELD_NUMBER = 3;
+    private int difficulty_;
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+     * @return The enum numeric value on the wire for difficulty.
+     */
+    @java.lang.Override
+    public int getDifficultyValue() {
+      return difficulty_;
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+     * @return The difficulty.
+     */
+    @java.lang.Override
+    public hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty getDifficulty() {
+      hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty result = hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty.forNumber(difficulty_);
+      return result == null ? hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty.UNRECOGNIZED : result;
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+     * @param value The enum numeric value on the wire for difficulty to set.
+     */
+    private void setDifficultyValue(int value) {
+        difficulty_ = value;
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+     * @param value The difficulty to set.
+     */
+    private void setDifficulty(hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty value) {
+      difficulty_ = value.getNumber();
+      
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+     */
+    private void clearDifficulty() {
+      
+      difficulty_ = 0;
+    }
+
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyRequest parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, data);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyRequest parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, data, extensionRegistry);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, data);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, data, extensionRegistry);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, data);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, data, extensionRegistry);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, input);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, input, extensionRegistry);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return parseDelimitedFrom(DEFAULT_INSTANCE, input);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return parseDelimitedFrom(DEFAULT_INSTANCE, input, extensionRegistry);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, input);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() {
+      return (Builder) DEFAULT_INSTANCE.createBuilder();
+    }
+    public static Builder newBuilder(hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyRequest prototype) {
+      return (Builder) DEFAULT_INSTANCE.createBuilder(prototype);
+    }
+
+    /**
+     * <pre>
+     * HTTP: 房主更新房间共享难度。
+     * </pre>
+     *
+     * Protobuf type {@code hitsz.aircraftwar.backend.UpdateRoomDifficultyRequest}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageLite.Builder<
+          hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyRequest, Builder> implements
+        // @@protoc_insertion_point(builder_implements:hitsz.aircraftwar.backend.UpdateRoomDifficultyRequest)
+        hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyRequestOrBuilder {
+      // Construct using hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyRequest.newBuilder()
+      private Builder() {
+        super(DEFAULT_INSTANCE);
+      }
+
+
+      /**
+       * <code>string room_id = 1;</code>
+       * @return The roomId.
+       */
+      @java.lang.Override
+      public java.lang.String getRoomId() {
+        return instance.getRoomId();
+      }
+      /**
+       * <code>string room_id = 1;</code>
+       * @return The bytes for roomId.
+       */
+      @java.lang.Override
+      public com.google.protobuf.ByteString
+          getRoomIdBytes() {
+        return instance.getRoomIdBytes();
+      }
+      /**
+       * <code>string room_id = 1;</code>
+       * @param value The roomId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRoomId(
+          java.lang.String value) {
+        copyOnWrite();
+        instance.setRoomId(value);
+        return this;
+      }
+      /**
+       * <code>string room_id = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearRoomId() {
+        copyOnWrite();
+        instance.clearRoomId();
+        return this;
+      }
+      /**
+       * <code>string room_id = 1;</code>
+       * @param value The bytes for roomId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRoomIdBytes(
+          com.google.protobuf.ByteString value) {
+        copyOnWrite();
+        instance.setRoomIdBytes(value);
+        return this;
+      }
+
+      /**
+       * <code>string username = 2;</code>
+       * @return The username.
+       */
+      @java.lang.Override
+      public java.lang.String getUsername() {
+        return instance.getUsername();
+      }
+      /**
+       * <code>string username = 2;</code>
+       * @return The bytes for username.
+       */
+      @java.lang.Override
+      public com.google.protobuf.ByteString
+          getUsernameBytes() {
+        return instance.getUsernameBytes();
+      }
+      /**
+       * <code>string username = 2;</code>
+       * @param value The username to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUsername(
+          java.lang.String value) {
+        copyOnWrite();
+        instance.setUsername(value);
+        return this;
+      }
+      /**
+       * <code>string username = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearUsername() {
+        copyOnWrite();
+        instance.clearUsername();
+        return this;
+      }
+      /**
+       * <code>string username = 2;</code>
+       * @param value The bytes for username to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUsernameBytes(
+          com.google.protobuf.ByteString value) {
+        copyOnWrite();
+        instance.setUsernameBytes(value);
+        return this;
+      }
+
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+       * @return The enum numeric value on the wire for difficulty.
+       */
+      @java.lang.Override
+      public int getDifficultyValue() {
+        return instance.getDifficultyValue();
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+       * @param value The difficulty to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDifficultyValue(int value) {
+        copyOnWrite();
+        instance.setDifficultyValue(value);
+        return this;
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+       * @return The difficulty.
+       */
+      @java.lang.Override
+      public hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty getDifficulty() {
+        return instance.getDifficulty();
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+       * @param value The enum numeric value on the wire for difficulty to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDifficulty(hitsz.aircraftwar.backend.AircraftWar.RoomDifficulty value) {
+        copyOnWrite();
+        instance.setDifficulty(value);
+        return this;
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.RoomDifficulty difficulty = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearDifficulty() {
+        copyOnWrite();
+        instance.clearDifficulty();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:hitsz.aircraftwar.backend.UpdateRoomDifficultyRequest)
+    }
+    @java.lang.Override
+    @java.lang.SuppressWarnings({"unchecked", "fallthrough"})
+    protected final java.lang.Object dynamicMethod(
+        com.google.protobuf.GeneratedMessageLite.MethodToInvoke method,
+        java.lang.Object arg0, java.lang.Object arg1) {
+      switch (method) {
+        case NEW_MUTABLE_INSTANCE: {
+          return new hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyRequest();
+        }
+        case NEW_BUILDER: {
+          return new Builder();
+        }
+        case BUILD_MESSAGE_INFO: {
+            java.lang.Object[] objects = new java.lang.Object[] {
+              "roomId_",
+              "username_",
+              "difficulty_",
+            };
+            java.lang.String info =
+                "\u0000\u0003\u0000\u0000\u0001\u0003\u0003\u0000\u0000\u0000\u0001\u0208\u0002\u0208" +
+                "\u0003\f";
+            return newMessageInfo(DEFAULT_INSTANCE, info, objects);
+        }
+        // fall through
+        case GET_DEFAULT_INSTANCE: {
+          return DEFAULT_INSTANCE;
+        }
+        case GET_PARSER: {
+          com.google.protobuf.Parser<hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyRequest> parser = PARSER;
+          if (parser == null) {
+            synchronized (hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyRequest.class) {
+              parser = PARSER;
+              if (parser == null) {
+                parser =
+                    new DefaultInstanceBasedParser<hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyRequest>(
+                        DEFAULT_INSTANCE);
+                PARSER = parser;
+              }
+            }
+          }
+          return parser;
+      }
+      case GET_MEMOIZED_IS_INITIALIZED: {
+        return (byte) 1;
+      }
+      case SET_MEMOIZED_IS_INITIALIZED: {
+        return null;
+      }
+      }
+      throw new UnsupportedOperationException();
+    }
+
+
+    // @@protoc_insertion_point(class_scope:hitsz.aircraftwar.backend.UpdateRoomDifficultyRequest)
+    private static final hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyRequest DEFAULT_INSTANCE;
+    static {
+      UpdateRoomDifficultyRequest defaultInstance = new UpdateRoomDifficultyRequest();
+      // New instances are implicitly immutable so no need to make
+      // immutable.
+      DEFAULT_INSTANCE = defaultInstance;
+      com.google.protobuf.GeneratedMessageLite.registerDefaultInstance(
+        UpdateRoomDifficultyRequest.class, defaultInstance);
+    }
+
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyRequest getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static volatile com.google.protobuf.Parser<UpdateRoomDifficultyRequest> PARSER;
+
+    public static com.google.protobuf.Parser<UpdateRoomDifficultyRequest> parser() {
+      return DEFAULT_INSTANCE.getParserForType();
+    }
+  }
+
+  public interface UpdateRoomDifficultyResponseOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:hitsz.aircraftwar.backend.UpdateRoomDifficultyResponse)
+      com.google.protobuf.MessageLiteOrBuilder {
+
+    /**
+     * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+     * @return Whether the room field is set.
+     */
+    boolean hasRoom();
+    /**
+     * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+     * @return The room.
+     */
+    hitsz.aircraftwar.backend.AircraftWar.Room getRoom();
+  }
+  /**
+   * Protobuf type {@code hitsz.aircraftwar.backend.UpdateRoomDifficultyResponse}
+   */
+  public  static final class UpdateRoomDifficultyResponse extends
+      com.google.protobuf.GeneratedMessageLite<
+          UpdateRoomDifficultyResponse, UpdateRoomDifficultyResponse.Builder> implements
+      // @@protoc_insertion_point(message_implements:hitsz.aircraftwar.backend.UpdateRoomDifficultyResponse)
+      UpdateRoomDifficultyResponseOrBuilder {
+    private UpdateRoomDifficultyResponse() {
+    }
+    public static final int ROOM_FIELD_NUMBER = 1;
+    private hitsz.aircraftwar.backend.AircraftWar.Room room_;
+    /**
+     * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+     */
+    @java.lang.Override
+    public boolean hasRoom() {
+      return room_ != null;
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+     */
+    @java.lang.Override
+    public hitsz.aircraftwar.backend.AircraftWar.Room getRoom() {
+      return room_ == null ? hitsz.aircraftwar.backend.AircraftWar.Room.getDefaultInstance() : room_;
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+     */
+    private void setRoom(hitsz.aircraftwar.backend.AircraftWar.Room value) {
+      value.getClass();
+  room_ = value;
+      
+      }
+    /**
+     * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+     */
+    @java.lang.SuppressWarnings({"ReferenceEquality"})
+    private void mergeRoom(hitsz.aircraftwar.backend.AircraftWar.Room value) {
+      value.getClass();
+  if (room_ != null &&
+          room_ != hitsz.aircraftwar.backend.AircraftWar.Room.getDefaultInstance()) {
+        room_ =
+          hitsz.aircraftwar.backend.AircraftWar.Room.newBuilder(room_).mergeFrom(value).buildPartial();
+      } else {
+        room_ = value;
+      }
+      
+    }
+    /**
+     * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+     */
+    private void clearRoom() {  room_ = null;
+      
+    }
+
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyResponse parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, data);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyResponse parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, data, extensionRegistry);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyResponse parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, data);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyResponse parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, data, extensionRegistry);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyResponse parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, data);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyResponse parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, data, extensionRegistry);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyResponse parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, input);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyResponse parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, input, extensionRegistry);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyResponse parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return parseDelimitedFrom(DEFAULT_INSTANCE, input);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyResponse parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return parseDelimitedFrom(DEFAULT_INSTANCE, input, extensionRegistry);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyResponse parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, input);
+    }
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyResponse parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() {
+      return (Builder) DEFAULT_INSTANCE.createBuilder();
+    }
+    public static Builder newBuilder(hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyResponse prototype) {
+      return (Builder) DEFAULT_INSTANCE.createBuilder(prototype);
+    }
+
+    /**
+     * Protobuf type {@code hitsz.aircraftwar.backend.UpdateRoomDifficultyResponse}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageLite.Builder<
+          hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyResponse, Builder> implements
+        // @@protoc_insertion_point(builder_implements:hitsz.aircraftwar.backend.UpdateRoomDifficultyResponse)
+        hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyResponseOrBuilder {
+      // Construct using hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyResponse.newBuilder()
+      private Builder() {
+        super(DEFAULT_INSTANCE);
+      }
+
+
+      /**
+       * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+       */
+      @java.lang.Override
+      public boolean hasRoom() {
+        return instance.hasRoom();
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+       */
+      @java.lang.Override
+      public hitsz.aircraftwar.backend.AircraftWar.Room getRoom() {
+        return instance.getRoom();
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+       */
+      public Builder setRoom(hitsz.aircraftwar.backend.AircraftWar.Room value) {
+        copyOnWrite();
+        instance.setRoom(value);
+        return this;
+        }
+      /**
+       * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+       */
+      public Builder setRoom(
+          hitsz.aircraftwar.backend.AircraftWar.Room.Builder builderForValue) {
+        copyOnWrite();
+        instance.setRoom(builderForValue.build());
+        return this;
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+       */
+      public Builder mergeRoom(hitsz.aircraftwar.backend.AircraftWar.Room value) {
+        copyOnWrite();
+        instance.mergeRoom(value);
+        return this;
+      }
+      /**
+       * <code>.hitsz.aircraftwar.backend.Room room = 1;</code>
+       */
+      public Builder clearRoom() {  copyOnWrite();
+        instance.clearRoom();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:hitsz.aircraftwar.backend.UpdateRoomDifficultyResponse)
+    }
+    @java.lang.Override
+    @java.lang.SuppressWarnings({"unchecked", "fallthrough"})
+    protected final java.lang.Object dynamicMethod(
+        com.google.protobuf.GeneratedMessageLite.MethodToInvoke method,
+        java.lang.Object arg0, java.lang.Object arg1) {
+      switch (method) {
+        case NEW_MUTABLE_INSTANCE: {
+          return new hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyResponse();
+        }
+        case NEW_BUILDER: {
+          return new Builder();
+        }
+        case BUILD_MESSAGE_INFO: {
+            java.lang.Object[] objects = new java.lang.Object[] {
+              "room_",
+            };
+            java.lang.String info =
+                "\u0000\u0001\u0000\u0000\u0001\u0001\u0001\u0000\u0000\u0000\u0001\t";
+            return newMessageInfo(DEFAULT_INSTANCE, info, objects);
+        }
+        // fall through
+        case GET_DEFAULT_INSTANCE: {
+          return DEFAULT_INSTANCE;
+        }
+        case GET_PARSER: {
+          com.google.protobuf.Parser<hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyResponse> parser = PARSER;
+          if (parser == null) {
+            synchronized (hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyResponse.class) {
+              parser = PARSER;
+              if (parser == null) {
+                parser =
+                    new DefaultInstanceBasedParser<hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyResponse>(
+                        DEFAULT_INSTANCE);
+                PARSER = parser;
+              }
+            }
+          }
+          return parser;
+      }
+      case GET_MEMOIZED_IS_INITIALIZED: {
+        return (byte) 1;
+      }
+      case SET_MEMOIZED_IS_INITIALIZED: {
+        return null;
+      }
+      }
+      throw new UnsupportedOperationException();
+    }
+
+
+    // @@protoc_insertion_point(class_scope:hitsz.aircraftwar.backend.UpdateRoomDifficultyResponse)
+    private static final hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyResponse DEFAULT_INSTANCE;
+    static {
+      UpdateRoomDifficultyResponse defaultInstance = new UpdateRoomDifficultyResponse();
+      // New instances are implicitly immutable so no need to make
+      // immutable.
+      DEFAULT_INSTANCE = defaultInstance;
+      com.google.protobuf.GeneratedMessageLite.registerDefaultInstance(
+        UpdateRoomDifficultyResponse.class, defaultInstance);
+    }
+
+    public static hitsz.aircraftwar.backend.AircraftWar.UpdateRoomDifficultyResponse getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static volatile com.google.protobuf.Parser<UpdateRoomDifficultyResponse> PARSER;
+
+    public static com.google.protobuf.Parser<UpdateRoomDifficultyResponse> parser() {
       return DEFAULT_INSTANCE.getParserForType();
     }
   }
@@ -12544,6 +13653,11 @@ public final class AircraftWar {
     long getUpdatedAt();
   }
   /**
+   * <pre>
+   * WS: 服务端广播完整房间状态快照。
+   * 用于房间成员变化、准备状态变化、开始、结束以及重连后状态恢复。
+   * </pre>
+   *
    * Protobuf type {@code hitsz.aircraftwar.backend.RoomStateBroadcast}
    */
   public  static final class RoomStateBroadcast extends
@@ -12874,6 +13988,11 @@ public final class AircraftWar {
     }
 
     /**
+     * <pre>
+     * WS: 服务端广播完整房间状态快照。
+     * 用于房间成员变化、准备状态变化、开始、结束以及重连后状态恢复。
+     * </pre>
+     *
      * Protobuf type {@code hitsz.aircraftwar.backend.RoomStateBroadcast}
      */
     public static final class Builder extends

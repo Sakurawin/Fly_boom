@@ -43,6 +43,7 @@ public class RoomActivityLaunchTest {
                 AircraftWar.Room.newBuilder()
                         .setRoomId("123456")
                         .setStatus(AircraftWar.RoomStatus.ROOM_STATUS_WAITING)
+                        .setDifficulty(AircraftWar.RoomDifficulty.ROOM_DIFFICULTY_HARD)
                         .build(),
                 java.util.List.of(),
                 false,
@@ -72,6 +73,7 @@ public class RoomActivityLaunchTest {
             onView(withId(R.id.room_status_detail_value)).check(matches(withText(R.string.multiplayer_room_stage_waiting_player)));
             onView(withId(R.id.button_room_ready)).check(matches(isDisplayed()));
             onView(withId(R.id.room_owner_value)).check(matches(withText("-")));
+            onView(withId(R.id.room_difficulty_value)).check(matches(withText(R.string.difficulty_hard)));
             onView(withId(R.id.button_room_start)).check(matches(isNotEnabled()));
         }
     }

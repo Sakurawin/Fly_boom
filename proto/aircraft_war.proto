@@ -33,6 +33,14 @@ enum EnemyType {
   ENEMY_TYPE_BOSS = 3;
 }
 
+// 房间共享难度。单机可继续使用本地难度字符串，但联机房间必须使用统一枚举同步。
+enum RoomDifficulty {
+  ROOM_DIFFICULTY_UNSPECIFIED = 0;
+  ROOM_DIFFICULTY_EASY = 1;
+  ROOM_DIFFICULTY_NORMAL = 2;
+  ROOM_DIFFICULTY_HARD = 3;
+}
+
 // 从当前玩家视角看到的对局结果。
 enum GameResultType {
   GAME_RESULT_UNSPECIFIED = 0;
@@ -61,6 +69,7 @@ message Room {
   string room_id = 1;
   RoomStatus status = 2;
   repeated Player players = 3;
+  RoomDifficulty difficulty = 4;
 }
 
 // 房间内单个玩家的实时分数状态。
@@ -101,6 +110,7 @@ message LeaderboardEntry {
 message CreateRoomRequest {
   string username = 1;
   string avatar_id = 2;
+  RoomDifficulty difficulty = 3;
 }
 
 message CreateRoomResponse {
@@ -127,6 +137,17 @@ message ReadyRoomRequest {
 }
 
 message ReadyRoomResponse {
+  Room room = 1;
+}
+
+// HTTP: 房主更新房间共享难度。
+message UpdateRoomDifficultyRequest {
+  string room_id = 1;
+  string username = 2;
+  RoomDifficulty difficulty = 3;
+}
+
+message UpdateRoomDifficultyResponse {
   Room room = 1;
 }
 

@@ -245,6 +245,16 @@
                     android:textColor="@color/ui2_body"
                     android:textSize="13sp" />
 
+                <ToggleButton
+                    android:id="@+id/button_sound_toggle"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/ui2_button_chip"
+                    android:textOff="@string/sound_off"
+                    android:textOn="@string/sound_on"
+                    android:textColor="@color/ui2_title" />
+
                 <Button
                     android:id="@+id/button_start"
                     android:layout_width="match_parent"

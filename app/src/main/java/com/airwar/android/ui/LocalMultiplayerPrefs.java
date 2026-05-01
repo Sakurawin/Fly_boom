@@ -25,6 +25,10 @@ public final class LocalMultiplayerPrefs {
         return prefs(context).getString(NetworkConfig.PREF_AVATAR_ID, PilotAvatarRegistry.DEFAULT_AVATAR_ID);
     }
 
+    public static boolean isSoundEnabled(Context context) {
+        return prefs(context).getBoolean("sound_enabled", true);
+    }
+
     // 把服务地址和用户名持久化下来，方便玩家重进页面后直接恢复联机配置。
     public static void saveBaseConfig(Context context, String baseUrl, String username, String avatarId) {
         prefs(context).edit()
@@ -43,6 +47,12 @@ public final class LocalMultiplayerPrefs {
     public static void saveRoomId(Context context, String roomId) {
         prefs(context).edit()
                 .putString(NetworkConfig.PREF_ROOM_ID, roomId == null ? "" : roomId.trim())
+                .apply();
+    }
+
+    public static void saveSoundEnabled(Context context, boolean enabled) {
+        prefs(context).edit()
+                .putBoolean("sound_enabled", enabled)
                 .apply();
     }
 

@@ -38,5 +38,7 @@ public class MenuActivityLaunchTest {
         onView(withId(R.id.button_create_room)).check(matches(isDisplayed()));
         onView(withId(R.id.menu_avatar_title)).check(matches(isDisplayed()));
         onView(withId(R.id.menu_avatar_container)).check(matches(isDisplayed()));
+        onView(withId(R.id.button_start)).check(matches(isDisplayed()));
+        onView(withId(R.id.button_sound_toggle)).check(matches(isDisplayed()));
     }
 }

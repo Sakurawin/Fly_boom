@@ -36,6 +36,18 @@ public final class MultiplayerSession {
         void onSessionUpdated(Snapshot snapshot);
     }
 
+    static final class ConnectionIdentity {
+        private final String baseUrl;
+        private final String roomId;
+        private final String username;
+
+        ConnectionIdentity(String baseUrl, String roomId, String username) {
+            this.baseUrl = baseUrl == null ? "" : baseUrl;
+            this.roomId = roomId == null ? "" : roomId;
+            this.username = username == null ? "" : username;
+        }
+    }
+
     // 会话快照是页面层唯一需要依赖的联机状态视图，避免 Activity 直接操作底层 socket。
     public record Snapshot(
             String baseUrl,
@@ -72,6 +84,7 @@ public final class MultiplayerSession {
     private boolean roomFinished;
     private AircraftWar.RoomResult result;
     private WebSocket webSocket;
+    private ConnectionIdentity connectedIdentity;
     private ScheduledFuture<?> heartbeatFuture;
     private long heartbeatSequence;
 
@@ -84,12 +97,19 @@ public final class MultiplayerSession {
 
     // 进入房间前先写入联机会话的基础身份信息，后续 HTTP 和 WS 都基于这一份配置工作。
     public void configure(String baseUrl, String roomId, String username, String avatarId) {
+        boolean identityChanged;
         synchronized (stateLock) {
+            identityChanged = !this.roomId.equals(roomId == null ? "" : roomId)
+                    || !this.username.equals(username == null ? "" : username)
+                    || !this.baseUrl.equals(NetworkConfig.normalizeBaseUrl(baseUrl));
             this.baseUrl = NetworkConfig.normalizeBaseUrl(baseUrl);
             this.roomId = roomId == null ? "" : roomId;
             this.username = username == null ? "" : username;
             this.avatarId = avatarId == null || avatarId.isEmpty() ? "" : avatarId;
             this.lastError = "";
+        }
+        if (identityChanged) {
+            disconnect();
         }
         notifyListeners();
     }
@@ -146,6 +166,7 @@ public final class MultiplayerSession {
         synchronized (stateLock) {
             connectionState = ConnectionState.DISCONNECTED;
             lastError = "";
+            connectedIdentity = null;
         }
         if (webSocket != null) {
             webSocket.close(1000, "client close");
@@ -166,6 +187,7 @@ public final class MultiplayerSession {
             scores = List.of();
             roomFinished = false;
             result = null;
+            connectedIdentity = null;
             heartbeatSequence = 0L;
         }
         if (webSocket != null) {
@@ -199,9 +221,13 @@ public final class MultiplayerSession {
 
     private void startHeartbeat() {
         stopHeartbeat();
+        ConnectionIdentity identity = connectedIdentity;
+        if (identity == null || identity.roomId.isEmpty() || identity.username.isEmpty()) {
+            return;
+        }
         heartbeatFuture = scheduler.scheduleAtFixedRate(() -> {
             Snapshot current = snapshot();
-            if (current.connectionState() != ConnectionState.CONNECTED || current.roomId().isEmpty() || current.username().isEmpty()) {
+            if (current.connectionState() != ConnectionState.CONNECTED) {
                 return;
             }
             long nextSequence;
@@ -209,14 +235,7 @@ public final class MultiplayerSession {
                 heartbeatSequence += 1L;
                 nextSequence = heartbeatSequence;
             }
-            // 心跳序号用于排查丢包、乱序和网络抖动。
-            AircraftWar.PlayerHeartbeatEvent event = AircraftWar.PlayerHeartbeatEvent.newBuilder()
-                    .setRoomId(current.roomId())
-                    .setUsername(current.username())
-                    .setClientSentAt(System.currentTimeMillis())
-                    .setSequence(nextSequence)
-                    .build();
-            sendWsMessage(AircraftWar.WsMessage.newBuilder().setPlayerHeartbeatEvent(event).build());
+            sendHeartbeat(identity, nextSequence);
         }, 0L, 3L, TimeUnit.SECONDS);
     }
 
@@ -228,11 +247,15 @@ public final class MultiplayerSession {
     }
 
     private void sendWsMessage(AircraftWar.WsMessage message) {
+        sendRawWsBytes(message.toByteArray());
+    }
+
+    private void sendRawWsBytes(byte[] payload) {
         WebSocket socket = webSocket;
         if (socket == null) {
             return;
         }
-        socket.send(okio.ByteString.of(message.toByteArray()));
+        socket.send(okio.ByteString.of(payload));
     }
 
     private void notifyListeners() {
@@ -246,8 +269,12 @@ public final class MultiplayerSession {
         @Override
         public void onOpen(WebSocket webSocket, Response response) {
             synchronized (stateLock) {
+                if (!WebSocketGuards.isActiveSocket(MultiplayerSession.this.webSocket, webSocket)) {
+                    return;
+                }
                 connectionState = ConnectionState.CONNECTED;
                 lastError = "";
+                connectedIdentity = new ConnectionIdentity(baseUrl, roomId, username);
             }
             startHeartbeat();
             notifyListeners();
@@ -269,6 +296,9 @@ public final class MultiplayerSession {
         @Override
         public void onClosing(WebSocket webSocket, int code, String reason) {
             synchronized (stateLock) {
+                if (!WebSocketGuards.isActiveSocket(MultiplayerSession.this.webSocket, webSocket)) {
+                    return;
+                }
                 connectionState = ConnectionState.DISCONNECTED;
                 lastError = reason == null ? "" : reason;
             }
@@ -280,6 +310,9 @@ public final class MultiplayerSession {
         @Override
         public void onFailure(WebSocket webSocket, Throwable t, Response response) {
             synchronized (stateLock) {
+                if (!WebSocketGuards.isActiveSocket(MultiplayerSession.this.webSocket, webSocket)) {
+                    return;
+                }
                 connectionState = ConnectionState.ERROR;
                 lastError = t == null ? "网络连接失败" : t.getMessage();
             }
@@ -319,5 +352,14 @@ public final class MultiplayerSession {
             }
         }
         notifyListeners();
+    }
+
+    private void sendHeartbeat(ConnectionIdentity identity, long sequence) {
+        sendWsMessage(HeartbeatMessageFactory.create(
+                identity.roomId,
+                identity.username,
+                System.currentTimeMillis(),
+                sequence
+        ));
     }
 }

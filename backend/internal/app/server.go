@@ -117,6 +117,7 @@ func NewServer(cfg Config) (*Server, error) {
 	mux.HandleFunc("/rooms/create", server.handleCreateRoom)
 	mux.HandleFunc("/rooms/join", server.handleJoinRoom)
 	mux.HandleFunc("/rooms/ready", server.handleReadyRoom)
+	mux.HandleFunc("/rooms/difficulty", server.handleUpdateRoomDifficulty)
 	mux.HandleFunc("/rooms/start", server.handleStartGame)
 	mux.HandleFunc("/rooms/result", server.handleGetRoomResult)
 	mux.HandleFunc("/rooms/state", server.handleGetRoomState)
@@ -190,9 +191,15 @@ func (s *Server) handleCreateRoom(w http.ResponseWriter, r *http.Request) {
 	}
 	now := s.cfg.Now()
 	player := &pb.Player{Username: req.Username, Status: pb.PlayerStatus_PLAYER_STATUS_JOINED, IsHost: true, AvatarId: req.AvatarId}
+	difficulty := normalizeRoomDifficulty(req.Difficulty)
 	s.mu.Lock()
 	roomID := s.newUniqueRoomIDLocked(now)
-	room := &pb.Room{RoomId: roomID, Status: pb.RoomStatus_ROOM_STATUS_WAITING, Players: []*pb.Player{proto.Clone(player).(*pb.Player)}}
+	room := &pb.Room{
+		RoomId:      roomID,
+		Status:      pb.RoomStatus_ROOM_STATUS_WAITING,
+		Players:     []*pb.Player{proto.Clone(player).(*pb.Player)},
+		Difficulty:  difficulty,
+	}
 	s.rooms[room.RoomId] = &roomState{
 		room:        room,
 		playerOrder: []string{req.Username},
@@ -203,6 +210,38 @@ func (s *Server) handleCreateRoom(w http.ResponseWriter, r *http.Request) {
 	}
 	s.mu.Unlock()
 	s.writeProto(w, http.StatusOK, &pb.CreateRoomResponse{Room: cloneRoom(room), Self: proto.Clone(player).(*pb.Player)})
+}
+
+func (s *Server) handleUpdateRoomDifficulty(w http.ResponseWriter, r *http.Request) {
+	var req pb.UpdateRoomDifficultyRequest
+	if err := s.decodeRequest(r, &req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	s.mu.Lock()
+	room, player, err := s.lookupRoomPlayer(req.RoomId, req.Username)
+	if err != nil {
+		s.mu.Unlock()
+		s.writeLookupError(w, err)
+		return
+	}
+	if !player.player.IsHost {
+		s.mu.Unlock()
+		http.Error(w, "only host can update difficulty", http.StatusForbidden)
+		return
+	}
+	if room.room.Status == pb.RoomStatus_ROOM_STATUS_PLAYING || room.room.Status == pb.RoomStatus_ROOM_STATUS_FINISHED {
+		s.mu.Unlock()
+		http.Error(w, "room difficulty is locked", http.StatusConflict)
+		return
+	}
+	room.room.Difficulty = normalizeRoomDifficulty(req.Difficulty)
+	responseRoom := cloneRoom(room.room)
+	broadcasts := s.buildRoomStateBroadcastsForConnectionsLocked(room)
+	connections := s.snapshotConnectionsLocked(room)
+	s.mu.Unlock()
+	go s.broadcastRoomStateBroadcasts(connections, broadcasts)
+	s.writeProto(w, http.StatusOK, &pb.UpdateRoomDifficultyResponse{Room: responseRoom})
 }
 
 func (s *Server) handleJoinRoom(w http.ResponseWriter, r *http.Request) {
@@ -315,12 +354,12 @@ func (s *Server) handleStartGame(w http.ResponseWriter, r *http.Request) {
 		ps.lastHeartbeat = now
 		updateRoomPlayer(room.room, ps.player)
 	}
-	roomStateBroadcast := s.buildRoomStateBroadcastLocked(room, "")
+	roomStateBroadcasts := s.buildRoomStateBroadcastsForConnectionsLocked(room)
 	broadcast := &pb.ScoreBroadcast{RoomId: req.RoomId, Scores: roomScores(room), UpdatedAt: now.UnixMilli()}
 	connections := s.snapshotConnectionsLocked(room)
 	responseRoom := cloneRoom(room.room)
 	s.mu.Unlock()
-	go s.broadcastToConnections(connections, roomStateBroadcast)
+	go s.broadcastRoomStateBroadcasts(connections, roomStateBroadcasts)
 	go s.broadcastToConnections(connections, broadcast)
 	s.writeProto(w, http.StatusOK, &pb.StartGameResponse{Room: responseRoom, Started: true})
 }
@@ -530,7 +569,7 @@ func (s *Server) finishPlayerLocked(room *roomState, username string, reason pb.
 		return err
 	}
 	player.leaderboardSynced = true
-	roomStateBroadcast := s.buildRoomStateBroadcastLocked(room, "")
+	roomStateBroadcasts := s.buildRoomStateBroadcastsForConnectionsLocked(room)
 	broadcast := &pb.ScoreBroadcast{RoomId: room.room.RoomId, Scores: roomScores(room), UpdatedAt: s.cfg.Now().UnixMilli()}
 	connections := s.snapshotConnectionsLocked(room)
 	if allPlayers(room, func(ps *playerState) bool {
@@ -539,13 +578,13 @@ func (s *Server) finishPlayerLocked(room *roomState, username string, reason pb.
 		// 只有双方都结束后，房间才进入最终完成态并广播整局结算。
 		room.room.Status = pb.RoomStatus_ROOM_STATUS_FINISHED
 		result := s.finalizeRoomLocked(room)
-		roomStateBroadcast = s.buildRoomStateBroadcastLocked(room, "")
-		go s.broadcastToConnections(connections, roomStateBroadcast)
+		roomStateBroadcasts = s.buildRoomStateBroadcastsForConnectionsLocked(room)
+		go s.broadcastRoomStateBroadcasts(connections, roomStateBroadcasts)
 		go s.broadcastToConnections(connections, broadcast)
 		go s.broadcastToConnections(connections, &pb.GameFinishedBroadcast{RoomId: room.room.RoomId, Finished: true, Result: buildRoomResult(result, "")})
 		return nil
 	}
-	go s.broadcastToConnections(connections, roomStateBroadcast)
+	go s.broadcastRoomStateBroadcasts(connections, roomStateBroadcasts)
 	go s.broadcastToConnections(connections, broadcast)
 	return nil
 }
@@ -777,6 +816,27 @@ func (s *Server) buildRoomStateBroadcastLocked(room *roomState, username string)
 	return broadcast
 }
 
+func (s *Server) buildRoomStateBroadcastsForConnectionsLocked(room *roomState) map[*clientConn]*pb.RoomStateBroadcast {
+	broadcasts := make(map[*clientConn]*pb.RoomStateBroadcast, len(room.conns))
+	for username, conn := range room.conns {
+		if conn == nil {
+			continue
+		}
+		broadcasts[conn] = s.buildRoomStateBroadcastLocked(room, username)
+	}
+	return broadcasts
+}
+
+func (s *Server) broadcastRoomStateBroadcasts(connections []*clientConn, broadcasts map[*clientConn]*pb.RoomStateBroadcast) {
+	for _, conn := range connections {
+		broadcast, ok := broadcasts[conn]
+		if !ok || broadcast == nil {
+			continue
+		}
+		s.broadcastToConnections([]*clientConn{conn}, broadcast)
+	}
+}
+
 func buildRoomResult(result *persistedResult, username string) *pb.RoomResult {
 	return &pb.RoomResult{
 		RoomId:              result.roomID,
@@ -838,6 +898,16 @@ func enemyScore(enemyType pb.EnemyType) int32 {
 		return 50
 	default:
 		return 10
+	}
+}
+
+func normalizeRoomDifficulty(difficulty pb.RoomDifficulty) pb.RoomDifficulty {
+	switch difficulty {
+	case pb.RoomDifficulty_ROOM_DIFFICULTY_EASY,
+		pb.RoomDifficulty_ROOM_DIFFICULTY_HARD:
+		return difficulty
+	default:
+		return pb.RoomDifficulty_ROOM_DIFFICULTY_NORMAL
 	}
 }
 

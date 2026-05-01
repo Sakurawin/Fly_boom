@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.widget.TextView;
 import android.widget.Button;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -32,9 +33,13 @@ public class RoomActivity extends AppCompatActivity implements MultiplayerSessio
     private TextView roomSelfStateView;
     private TextView roomOpponentStateView;
     private TextView roomConnectionView;
+    private TextView roomDifficultyValue;
     private Button readyButton;
     private Button syncButton;
     private Button startButton;
+    private ToggleButton roomDifficultyEasy;
+    private ToggleButton roomDifficultyNormal;
+    private ToggleButton roomDifficultyHard;
     private String selectedDifficulty;
     private boolean gameNavigated;
 
@@ -68,9 +73,13 @@ public class RoomActivity extends AppCompatActivity implements MultiplayerSessio
         roomSelfStateView = findViewById(R.id.room_self_state_value);
         roomOpponentStateView = findViewById(R.id.room_opponent_state_value);
         roomConnectionView = findViewById(R.id.room_connection_value);
+        roomDifficultyValue = findViewById(R.id.room_difficulty_value);
         readyButton = findViewById(R.id.button_room_ready);
         syncButton = findViewById(R.id.button_room_sync);
         startButton = findViewById(R.id.button_room_start);
+        roomDifficultyEasy = findViewById(R.id.button_room_difficulty_easy);
+        roomDifficultyNormal = findViewById(R.id.button_room_difficulty_normal);
+        roomDifficultyHard = findViewById(R.id.button_room_difficulty_hard);
 
         headerTitle.setText(getString(R.string.multiplayer_room_title));
         bindBottomNav();
@@ -78,6 +87,9 @@ public class RoomActivity extends AppCompatActivity implements MultiplayerSessio
         readyButton.setOnClickListener(v -> readyRoom());
         syncButton.setOnClickListener(v -> syncRoomState());
         startButton.setOnClickListener(v -> startGame());
+        roomDifficultyEasy.setOnClickListener(v -> updateRoomDifficulty(MenuActivity.DIFFICULTY_EASY));
+        roomDifficultyNormal.setOnClickListener(v -> updateRoomDifficulty(MenuActivity.DIFFICULTY_NORMAL));
+        roomDifficultyHard.setOnClickListener(v -> updateRoomDifficulty(MenuActivity.DIFFICULTY_HARD));
 
         MultiplayerSession.getInstance().connectIfNeeded();
         MultiplayerSession.getInstance().addListener(this);
@@ -94,15 +106,16 @@ public class RoomActivity extends AppCompatActivity implements MultiplayerSessio
 
     @Override
     public void onSessionUpdated(MultiplayerSession.Snapshot snapshot) {
+        renderSnapshot(snapshot);
         if (!gameNavigated && shouldEnterGame(snapshot)) {
             gameNavigated = true;
             Intent gameIntent = new Intent(this, GameActivity.class);
             gameIntent.putExtra(EXTRA_DIFFICULTY, selectedDifficulty);
+            gameIntent.putExtra(GameActivity.EXTRA_IS_MULTIPLAYER, true);
             startActivity(gameIntent);
             finish();
             return;
         }
-        renderSnapshot(snapshot);
     }
 
     private boolean shouldEnterGame(MultiplayerSession.Snapshot snapshot) {
@@ -138,6 +151,9 @@ public class RoomActivity extends AppCompatActivity implements MultiplayerSessio
                 readablePlayerState(opponentPlayer == null ? null : opponentPlayer.getStatus())
         ));
         roomConnectionView.setText(readableConnectionStatus(snapshot.connectionState()));
+        String effectiveDifficulty = room == null ? selectedDifficulty : MultiplayerApi.fromRoomDifficulty(room.getDifficulty());
+        selectedDifficulty = effectiveDifficulty;
+        roomDifficultyValue.setText(readableDifficulty(effectiveDifficulty));
 
         boolean hasRoom = !snapshot.roomId().isEmpty();
         boolean isHost = isHost(snapshot);
@@ -151,6 +167,12 @@ public class RoomActivity extends AppCompatActivity implements MultiplayerSessio
         startButton.setEnabled(hasRoom && isHost && room != null && room.getStatus() == AircraftWar.RoomStatus.ROOM_STATUS_READY);
         startButton.setAlpha(startButton.isEnabled() ? 1f : 0.6f);
         startButton.setTextColor(ContextCompat.getColor(this, startButton.isEnabled() ? R.color.ui2_button_text : R.color.ui2_muted));
+        roomDifficultyEasy.setChecked(MenuActivity.DIFFICULTY_EASY.equals(effectiveDifficulty));
+        roomDifficultyNormal.setChecked(MenuActivity.DIFFICULTY_NORMAL.equals(effectiveDifficulty));
+        roomDifficultyHard.setChecked(MenuActivity.DIFFICULTY_HARD.equals(effectiveDifficulty));
+        roomDifficultyEasy.setEnabled(isHost && !roomPlaying && !roomFinished);
+        roomDifficultyNormal.setEnabled(isHost && !roomPlaying && !roomFinished);
+        roomDifficultyHard.setEnabled(isHost && !roomPlaying && !roomFinished);
     }
 
     private AircraftWar.Player findPlayer(AircraftWar.Room room, String username) {
@@ -256,10 +278,19 @@ public class RoomActivity extends AppCompatActivity implements MultiplayerSessio
                         gameNavigated = true;
                         Intent gameIntent = new Intent(this, GameActivity.class);
                         gameIntent.putExtra(EXTRA_DIFFICULTY, selectedDifficulty);
+                        gameIntent.putExtra(GameActivity.EXTRA_IS_MULTIPLAYER, true);
                         startActivity(gameIntent);
                         finish();
                     }
                 }
+        );
+    }
+
+    private void updateRoomDifficulty(String difficulty) {
+        MultiplayerSession.Snapshot snapshot = MultiplayerSession.getInstance().snapshot();
+        runRoomRequest(
+                () -> multiplayerApi.updateRoomDifficulty(snapshot.baseUrl(), snapshot.roomId(), snapshot.username(), difficulty),
+                response -> MultiplayerSession.getInstance().applyRoomState(response.getRoom(), snapshot.scores(), false, null)
         );
     }
 
@@ -358,6 +389,14 @@ public class RoomActivity extends AppCompatActivity implements MultiplayerSessio
             case CONNECTING -> getString(R.string.multiplayer_connection_connecting);
             case ERROR -> getString(R.string.multiplayer_connection_error);
             default -> getString(R.string.multiplayer_connection_disconnected);
+        };
+    }
+
+    private String readableDifficulty(String difficulty) {
+        return switch (difficulty) {
+            case MenuActivity.DIFFICULTY_EASY -> getString(R.string.difficulty_easy);
+            case MenuActivity.DIFFICULTY_HARD -> getString(R.string.difficulty_hard);
+            default -> getString(R.string.difficulty_normal);
         };
     }
 

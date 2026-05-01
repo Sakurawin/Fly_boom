@@ -7,11 +7,34 @@ import hitsz.aircraftwar.backend.AircraftWar;
 public class MultiplayerApi {
     private final ProtoHttpClient httpClient = new ProtoHttpClient();
 
+    public static AircraftWar.RoomDifficulty toRoomDifficulty(String difficulty) {
+        if (difficulty == null) {
+            return AircraftWar.RoomDifficulty.ROOM_DIFFICULTY_NORMAL;
+        }
+        return switch (difficulty.trim().toLowerCase(java.util.Locale.ROOT)) {
+            case "easy" -> AircraftWar.RoomDifficulty.ROOM_DIFFICULTY_EASY;
+            case "hard" -> AircraftWar.RoomDifficulty.ROOM_DIFFICULTY_HARD;
+            default -> AircraftWar.RoomDifficulty.ROOM_DIFFICULTY_NORMAL;
+        };
+    }
+
+    public static String fromRoomDifficulty(AircraftWar.RoomDifficulty difficulty) {
+        if (difficulty == null) {
+            return "normal";
+        }
+        return switch (difficulty) {
+            case ROOM_DIFFICULTY_EASY -> "easy";
+            case ROOM_DIFFICULTY_HARD -> "hard";
+            default -> "normal";
+        };
+    }
+
     // 房间前置流程统一走 HTTP，便于客户端在进入实时对战前完成状态确认。
-    public AircraftWar.CreateRoomResponse createRoom(String baseUrl, String username, String avatarId) throws IOException {
+    public AircraftWar.CreateRoomResponse createRoom(String baseUrl, String username, String avatarId, String difficulty) throws IOException {
         AircraftWar.CreateRoomRequest request = AircraftWar.CreateRoomRequest.newBuilder()
                 .setUsername(username)
                 .setAvatarId(avatarId)
+                .setDifficulty(toRoomDifficulty(difficulty))
                 .build();
         return httpClient.post(baseUrl, "/rooms/create", request, AircraftWar.CreateRoomResponse.parser());
     }
@@ -31,6 +54,15 @@ public class MultiplayerApi {
                 .setUsername(username)
                 .build();
         return httpClient.post(baseUrl, "/rooms/ready", request, AircraftWar.ReadyRoomResponse.parser());
+    }
+
+    public AircraftWar.UpdateRoomDifficultyResponse updateRoomDifficulty(String baseUrl, String roomId, String username, String difficulty) throws IOException {
+        AircraftWar.UpdateRoomDifficultyRequest request = AircraftWar.UpdateRoomDifficultyRequest.newBuilder()
+                .setRoomId(roomId)
+                .setUsername(username)
+                .setDifficulty(toRoomDifficulty(difficulty))
+                .build();
+        return httpClient.post(baseUrl, "/rooms/difficulty", request, AircraftWar.UpdateRoomDifficultyResponse.parser());
     }
 
     public AircraftWar.StartGameResponse startGame(String baseUrl, String roomId, String username) throws IOException {

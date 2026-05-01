@@ -20,6 +20,8 @@ import hitsz.aircraftwar.backend.AircraftWar;
 public class GameOverActivity extends AppCompatActivity implements MultiplayerSession.Listener {
     public static final String EXTRA_SCORE = "extra_score";
     public static final String EXTRA_DURATION_SEC = "extra_duration_sec";
+    public static final String EXTRA_DIFFICULTY = MenuActivity.EXTRA_DIFFICULTY;
+    public static final String EXTRA_IS_MULTIPLAYER = GameActivity.EXTRA_IS_MULTIPLAYER;
 
     private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
     private final com.airwar.android.net.MultiplayerApi multiplayerApi = new com.airwar.android.net.MultiplayerApi();
@@ -27,6 +29,8 @@ public class GameOverActivity extends AppCompatActivity implements MultiplayerSe
     private TextView statusText;
     private TextView opponentStatusText;
     private int score;
+    private boolean multiplayerMode;
+    private String difficulty;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +39,8 @@ public class GameOverActivity extends AppCompatActivity implements MultiplayerSe
 
         score = getIntent().getIntExtra(EXTRA_SCORE, 0);
         int durationSec = getIntent().getIntExtra(EXTRA_DURATION_SEC, 0);
+        multiplayerMode = getIntent().getBooleanExtra(EXTRA_IS_MULTIPLAYER, false);
+        difficulty = getIntent().getStringExtra(EXTRA_DIFFICULTY);
 
         TextView headerTitle = findViewById(R.id.game_over_header);
         scoreText = findViewById(R.id.game_over_score);
@@ -51,21 +57,35 @@ public class GameOverActivity extends AppCompatActivity implements MultiplayerSe
         statusText.setText(getString(R.string.game_over_status_normal));
         opponentStatusText.setText(getString(R.string.game_over_opponent_playing));
 
-        MultiplayerSession.getInstance().addListener(this);
-        syncStateOnce();
+        if (multiplayerMode) {
+            MultiplayerSession.getInstance().addListener(this);
+            syncStateOnce();
+        } else {
+            opponentStatusText.setText(getString(R.string.game_over_single_player_ready));
+        }
 
         submitButton.setOnClickListener(v -> {
-            // 结束页提交按钮现在只承担“查看全服榜”的作用，最终成绩已经由服务端负责入榜。
-            MultiplayerSession.getInstance().disconnect();
-            Intent leaderboardIntent = new Intent(this, LeaderboardActivity.class);
-            startActivity(leaderboardIntent);
+            if (multiplayerMode) {
+                // 结束页提交按钮现在只承担“查看全服榜”的作用，最终成绩已经由服务端负责入榜。
+                MultiplayerSession.getInstance().disconnect();
+                Intent leaderboardIntent = new Intent(this, LeaderboardActivity.class);
+                startActivity(leaderboardIntent);
+            } else {
+                Intent replayIntent = new Intent(this, GameActivity.class);
+                replayIntent.putExtra(GameActivity.EXTRA_DIFFICULTY, difficulty == null ? MenuActivity.DIFFICULTY_NORMAL : difficulty);
+                replayIntent.putExtra(GameActivity.EXTRA_IS_MULTIPLAYER, false);
+                startActivity(replayIntent);
+            }
             finish();
         });
+        submitButton.setText(multiplayerMode ? getString(R.string.game_over_submit) : getString(R.string.game_over_replay));
     }
 
     @Override
     protected void onDestroy() {
-        MultiplayerSession.getInstance().removeListener(this);
+        if (multiplayerMode) {
+            MultiplayerSession.getInstance().removeListener(this);
+        }
         ioExecutor.shutdownNow();
         super.onDestroy();
     }
@@ -93,6 +113,9 @@ public class GameOverActivity extends AppCompatActivity implements MultiplayerSe
     // 结束页仍然监听联机会话，是为了支持“自己已结束、对手仍在游戏中”时继续看到对手状态变化。
     @Override
     public void onSessionUpdated(MultiplayerSession.Snapshot snapshot) {
+        if (!multiplayerMode) {
+            return;
+        }
         AircraftWar.RoomPlayerScore selfScore = findSelfScore(snapshot.scores(), snapshot.username());
         AircraftWar.RoomPlayerScore opponentScore = findOpponentScore(snapshot.scores(), snapshot.username());
 

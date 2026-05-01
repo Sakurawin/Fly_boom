@@ -53,6 +53,15 @@
             android:text="@string/hud_room_state_default"
             android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
             android:textColor="@color/ui_text_title" />
+
+        <ToggleButton
+            android:id="@+id/hud_sound_toggle"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_marginStart="10dp"
+            android:minWidth="72dp"
+            android:textOff="@string/sound_off"
+            android:textOn="@string/sound_on" />
     </LinearLayout>
 
     <TextView
