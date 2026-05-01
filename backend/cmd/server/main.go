@@ -3,17 +3,13 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/acc1111/aircraft-war-hitsz/backend/internal/app"
 )
 
 func main() {
-	dbPath := os.Getenv("AIRCRAFT_WAR_DB_PATH")
-	if dbPath == "" {
-		dbPath = "backend.sqlite"
-	}
-	server, err := app.NewServer(app.Config{DBPath: dbPath})
+	// 小项目直接使用固定数据库文件，避免再引入额外环境变量配置。
+	server, err := app.NewServer(app.Config{DBPath: "backend/aircraft-war.sqlite"})
 	if err != nil {
 		log.Fatal(err)
 	}
