@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets;
 public final class NetworkConfig {
     // 联调默认走 Android 模拟器访问宿主机的地址。
     // 后续切换测试环境或正式环境时，优先改这里或菜单页输入值，不要在业务代码里散改地址。
-    public static final String DEFAULT_BASE_URL = "http://10.0.2.2:8080";
+    public static final String DEFAULT_BASE_URL = "http://kismet.uno:8080";
     public static final String PREFS_NAME = "multiplayer_prefs";
     public static final String PREF_BASE_URL = "base_url";
     public static final String PREF_USERNAME = "username";
