@@ -75,7 +75,40 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:textColor="@color/ui2_title"
-                    android:textSize="16sp" />
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/room_status_detail_value"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textColor="@color/ui2_body"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="@string/multiplayer_room_players_label"
+                    android:textColor="@color/ui2_muted"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/room_self_state_value"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:textColor="@color/ui2_title"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/room_opponent_state_value"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textColor="@color/ui2_title"
+                    android:textSize="14sp" />
 
                 <TextView
                     android:layout_width="wrap_content"
