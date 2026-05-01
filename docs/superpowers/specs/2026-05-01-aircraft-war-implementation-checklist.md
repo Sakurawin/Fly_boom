@@ -15,7 +15,7 @@
 - [ ] 后端已确认使用 `proto/aircraft_war.proto` 生成 Go 代码
 - [ ] 双方已确认不使用 gRPC，只使用 Protobuf 编解码
 - [ ] 双方已确认 HTTP 请求体和响应体均为 Protobuf 二进制
-- [ ] 双方已确认 WebSocket 使用二进制消息传输 Protobuf
+- [ ] 双方已确认 WebSocket 使用 `WsMessage` 二进制消息传输 Protobuf
 - [ ] 双方已确认玩家唯一标识为 `username`
 - [ ] 双方已确认房间固定为双人房间
 - [ ] 双方已确认排行榜按 `best_score` 排序
@@ -33,7 +33,7 @@
 
 ## 3. 心跳与掉线规则确认
 
-- [ ] 客户端已确认对战期每 3 秒发送一次 `PlayerHeartbeatEvent`
+- [ ] 客户端已确认对战期每 3 秒发送一次承载 `PlayerHeartbeatEvent` 的 `WsMessage`
 - [ ] 后端已确认 9 秒未收到心跳视为超时
 - [ ] 后端已确认超时后额外复检 3 秒
 - [ ] 后端已确认超过 12 秒仍未恢复则判定玩家掉线
@@ -54,18 +54,18 @@
 
 ## 5. WebSocket 消息准备检查
 
-- [ ] 客户端可发送 `PlayerHeartbeatEvent`
-- [ ] 客户端可发送 `PlayerDefeatEvent`
-- [ ] 客户端可发送 `PlayerGameOverEvent`
-- [ ] 后端可广播 `ScoreBroadcast`
-- [ ] 后端可广播 `GameFinishedBroadcast`
+- [ ] 客户端可发送承载 `PlayerHeartbeatEvent` 的 `WsMessage`
+- [ ] 客户端可发送承载 `PlayerDefeatEvent` 的 `WsMessage`
+- [ ] 客户端可发送承载 `PlayerGameOverEvent` 的 `WsMessage`
+- [ ] 后端可广播承载 `ScoreBroadcast` 的 `WsMessage`
+- [ ] 后端可广播承载 `GameFinishedBroadcast` 的 `WsMessage`
 - [ ] 双方已确认 WebSocket 建连参数为 `room_id` 和 `username`
 
 ## 6. 客户端实现前检查
 
 - [ ] 已有 Protobuf Java 代码生成方案
 - [ ] 已有 HTTP Protobuf 编解码方案
-- [ ] 已有 WebSocket 二进制消息处理方案
+- [ ] 已有基于 `WsMessage` 的 WebSocket 二进制消息处理方案
 - [ ] 已有房间页面与对战页面的 UI 状态切换方案
 - [ ] 已有结束界面展示“自己已结束，对手仍在游戏中”的方案
 - [ ] 已有掉线恢复后调用 `POST /rooms/state` 的方案
@@ -76,7 +76,7 @@
 
 - [ ] 已有 Protobuf Go 代码生成方案
 - [ ] 已有 HTTP Protobuf 请求解析方案
-- [ ] 已有 WebSocket 二进制消息处理方案
+- [ ] 已有基于 `WsMessage` 的 WebSocket 二进制消息处理方案
 - [ ] 已有房间内存模型或服务层模型方案
 - [ ] 已有服务端权威计分方案
 - [ ] 已有心跳超时检测与复检方案
@@ -91,10 +91,10 @@
 - [ ] 可成功完成双方准备
 - [ ] 房主可成功开始游戏
 - [ ] 可成功建立 WebSocket 连接
-- [ ] 可成功发送心跳
-- [ ] 可成功上报击败事件
-- [ ] 可成功接收比分广播
-- [ ] 可成功上报主动结束事件
+- [ ] 可成功发送承载 `PlayerHeartbeatEvent` 的 `WsMessage`
+- [ ] 可成功上报承载 `PlayerDefeatEvent` 的 `WsMessage`
+- [ ] 可成功接收承载 `ScoreBroadcast` 的 `WsMessage`
+- [ ] 可成功上报承载 `PlayerGameOverEvent` 的 `WsMessage`
 
 ## 9. 掉线场景联调 Checklist
 
@@ -104,7 +104,7 @@
 - [ ] 掉线玩家分数被冻结
 - [ ] 掉线玩家后续击败事件会被拒绝
 - [ ] 另一名玩家仍可继续游戏并继续涨分
-- [ ] 服务端仍持续广播 `ScoreBroadcast`
+- [ ] 服务端仍持续广播承载 `ScoreBroadcast` 的 `WsMessage`
 - [ ] 掉线玩家恢复网络后可调用 `POST /rooms/state`
 - [ ] `POST /rooms/state` 返回自己已结束、对手仍在游戏中的状态
 - [ ] 掉线玩家进入结束界面后仍能继续看到对手分数变化
@@ -118,7 +118,7 @@
 - [ ] `RoomResult.self_result` 正确
 - [ ] `player_a_finish_reason` 和 `player_b_finish_reason` 正确
 - [ ] 房间最终进入 `ROOM_STATUS_FINISHED`
-- [ ] 后端能广播 `GameFinishedBroadcast`
+- [ ] 后端能广播承载 `GameFinishedBroadcast` 的 `WsMessage`
 
 ## 11. 排行榜联调 Checklist
 

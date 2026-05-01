@@ -218,3 +218,16 @@ message GameFinishedBroadcast {
   bool finished = 2;
   RoomResult result = 3;
 }
+
+// WS: WebSocket 二进制帧统一包裹消息。
+// 一条 WebSocket binary frame 对应一个 WsMessage。
+// 客户端与服务端都只通过该消息承载具体的 WS 事件载荷。
+message WsMessage {
+  oneof payload {
+    PlayerHeartbeatEvent player_heartbeat_event = 1;
+    PlayerDefeatEvent player_defeat_event = 2;
+    PlayerGameOverEvent player_game_over_event = 3;
+    ScoreBroadcast score_broadcast = 4;
+    GameFinishedBroadcast game_finished_broadcast = 5;
+  }
+}

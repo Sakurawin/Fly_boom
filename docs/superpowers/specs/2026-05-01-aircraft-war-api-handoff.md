@@ -179,7 +179,19 @@
 
 - `GET /ws?room_id=<room_id>&username=<username>`
 
+传输约定：
+
+- 一条 WebSocket binary frame 对应一个 `WsMessage`
+- 客户端与服务端都通过 `WsMessage` 传输具体 WS 业务消息
+- 业务侧不要直接发送裸 `PlayerHeartbeatEvent`、`PlayerDefeatEvent`、`PlayerGameOverEvent`、`ScoreBroadcast` 或 `GameFinishedBroadcast`
+
 ### 3.1 客户端 -> 服务端
+
+客户端发送时，将以下消息分别放入 `WsMessage.payload`：
+
+- `player_heartbeat_event`
+- `player_defeat_event`
+- `player_game_over_event`
 
 #### PlayerHeartbeatEvent
 
@@ -233,6 +245,11 @@
 
 ### 3.2 服务端 -> 客户端
 
+服务端广播时，将以下消息分别放入 `WsMessage.payload`：
+
+- `score_broadcast`
+- `game_finished_broadcast`
+
 #### ScoreBroadcast
 
 用途：
@@ -278,25 +295,25 @@
 3. A/B 分别调 `POST /rooms/ready`
 4. A 调 `POST /rooms/start`
 5. A/B 建立 WebSocket 连接
-6. A/B 开始周期性发送 `PlayerHeartbeatEvent`
+6. A/B 开始周期性发送承载 `PlayerHeartbeatEvent` 的 `WsMessage`
 7. 对战开始
 
 ### 4.2 正常对战时序
 
 1. 客户端本地判定击败敌机
-2. 客户端发送 `PlayerDefeatEvent`
+2. 客户端发送承载 `PlayerDefeatEvent` 的 `WsMessage`
 3. 服务端校验房间和玩家
 4. 服务端按 `enemy_type` 累加分数
-5. 服务端广播 `ScoreBroadcast`
+5. 服务端广播承载 `ScoreBroadcast` 的 `WsMessage`
 6. 双方客户端更新比分显示
 
 ### 4.3 单个玩家主动结束时序
 
-1. 玩家发送 `PlayerGameOverEvent`
+1. 玩家发送承载 `PlayerGameOverEvent` 的 `WsMessage`
 2. 服务端将该玩家标记为 `finished`
-3. 服务端继续向房间广播 `ScoreBroadcast`
+3. 服务端继续向房间广播承载 `ScoreBroadcast` 的 `WsMessage`
 4. 若另一名玩家仍在游戏中，则继续游戏
-5. 当另一名玩家也结束后，服务端广播 `GameFinishedBroadcast`
+5. 当另一名玩家也结束后，服务端广播承载 `GameFinishedBroadcast` 的 `WsMessage`
 
 ### 4.4 单个玩家掉线时序
 
@@ -306,7 +323,7 @@
 4. 若仍未恢复，则将该玩家标记为掉线结束
 5. 服务端冻结该玩家当前分数
 6. 服务端将该玩家本局分数纳入排行榜统计逻辑
-7. 服务端继续广播 `ScoreBroadcast`
+7. 服务端继续广播承载 `ScoreBroadcast` 的 `WsMessage`
 8. 另一名玩家继续游戏
 
 ### 4.5 掉线后恢复网络时序
@@ -315,17 +332,17 @@
 2. 客户端调用 `POST /rooms/state`
 3. 服务端返回当前房间状态和双方分数状态
 4. 若该玩家已被判定结束，则客户端直接进入结束界面
-5. 若客户端恢复 WebSocket，则仍可继续接收 `ScoreBroadcast`
-6. 当房间最终结束时，客户端可收到 `GameFinishedBroadcast` 或再次调用 `POST /rooms/result`
+5. 若客户端恢复 WebSocket，则仍可继续接收承载 `ScoreBroadcast` 的 `WsMessage`
+6. 当房间最终结束时，客户端可收到承载 `GameFinishedBroadcast` 的 `WsMessage` 或再次调用 `POST /rooms/result`
 
 ## 5. 客户端重点实现项
 
 - Protobuf 请求响应编解码
-- WebSocket 二进制消息收发
+- WebSocket `WsMessage` 二进制消息收发
 - 心跳定时发送
 - 掉线恢复后的 `POST /rooms/state` 查询
 - 结束界面展示“自己已结束，对手仍在游戏中”
-- 根据 `ScoreBroadcast.scores[]` 展示双方分数和结束状态
+- 根据 `WsMessage.score_broadcast.scores[]` 展示双方分数和结束状态
 
 ## 6. 后端重点实现项
 
@@ -335,4 +352,4 @@
 - 服务端分数权威累计
 - 掉线时排行榜统计更新
 - `POST /rooms/state` 状态恢复接口
-- `ScoreBroadcast` 和 `GameFinishedBroadcast` 推送
+- `WsMessage` 包裹下的 `ScoreBroadcast` 和 `GameFinishedBroadcast` 推送

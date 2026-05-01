@@ -397,7 +397,20 @@ WebSocket 用于玩家进入多人对战之后的实时消息交换。
 
 后端应基于该连接绑定目标房间与玩家身份。
 
+传输约定：
+
+- 一条 WebSocket binary frame 对应一个 `WsMessage`
+- 客户端与服务端都只传输 `WsMessage` 的 Protobuf 二进制
+- 具体业务消息通过 `WsMessage.payload` 中的 `oneof` 承载
+- HTTP 请求响应继续直接使用各自的消息体，不使用 `WsMessage`
+
 ### 客户端到服务端消息
+
+客户端发送时，应将以下消息包入 `WsMessage`：
+
+- `WsMessage.player_heartbeat_event`
+- `WsMessage.player_defeat_event`
+- `WsMessage.player_game_over_event`
 
 #### 13.1 PlayerDefeatEvent
 
@@ -456,6 +469,11 @@ WebSocket 用于玩家进入多人对战之后的实时消息交换。
 后端应以房间内维护的分数状态为准，`final_score` 仅作辅助参考。
 
 ### 服务端到客户端消息
+
+服务端广播时，应将以下消息包入 `WsMessage`：
+
+- `WsMessage.score_broadcast`
+- `WsMessage.game_finished_broadcast`
 
 #### 13.4 ScoreBroadcast
 
@@ -526,6 +544,7 @@ WebSocket 用于玩家进入多人对战之后的实时消息交换。
 - `PlayerGameOverEvent`
 - `ScoreBroadcast`
 - `GameFinishedBroadcast`
+- `WsMessage`
 
 ### 枚举类型
 

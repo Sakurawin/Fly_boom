@@ -29,7 +29,7 @@
 
 - 使用 `aircraft_war.proto` 生成 Java 代码
 - 封装 HTTP Protobuf 请求发送能力
-- 封装 WebSocket 二进制消息收发能力
+- 封装基于 `WsMessage` 的 WebSocket 二进制消息收发能力
 - 建立消息类型与业务处理逻辑的映射
 
 交付结果：
@@ -62,6 +62,7 @@
 ### 2.4 心跳机制
 
 - 对战期每 3 秒发送一次 `PlayerHeartbeatEvent`
+- 发送时将 `PlayerHeartbeatEvent` 包入 `WsMessage`
 - 本地维护 `sequence` 递增
 - 心跳发送时记录埋点信息
 - 网络异常或连接关闭时触发恢复逻辑
@@ -73,6 +74,7 @@
 ### 2.5 击败事件上报
 
 - 本地判定敌机击败时发送 `PlayerDefeatEvent`
+- 发送时将 `PlayerDefeatEvent` 包入 `WsMessage`
 - 为每次击败事件生成 `client_event_id`
 - 按协议填充 `enemy_type`
 - 如有需要可同步填充 `score_delta` 作为调试字段
@@ -83,7 +85,7 @@
 
 ### 2.6 比分与状态展示
 
-- 监听 `ScoreBroadcast`
+- 监听 `WsMessage` 并解析其中的 `ScoreBroadcast`
 - 根据 `scores[]` 刷新双方分数
 - 根据 `finished`、`status`、`finish_reason` 展示玩家状态
 - 支持“自己已结束，对方仍在游戏中”的展示文案
@@ -95,6 +97,7 @@
 ### 2.7 主动结束流程
 
 - 本地游戏结束时发送 `PlayerGameOverEvent`
+- 发送时将 `PlayerGameOverEvent` 包入 `WsMessage`
 - 发送后将自己标记为已结束
 - 若房间未整体结束，则进入等待对手完成的状态展示
 
@@ -141,7 +144,7 @@
 
 - 使用 `aircraft_war.proto` 生成 Go 代码
 - 封装 HTTP Protobuf 请求解析与响应写回
-- 封装 WebSocket Protobuf 二进制消息收发
+- 封装基于 `WsMessage` 的 WebSocket Protobuf 二进制消息收发
 
 交付结果：
 
@@ -186,6 +189,7 @@
 ### 3.5 服务端权威计分
 
 - 接收 `PlayerDefeatEvent`
+- 从 `WsMessage` 解包并分发 `PlayerDefeatEvent`
 - 校验玩家是否属于房间且仍处于可游戏状态
 - 根据 `enemy_type` 计算分值
 - 更新房间内玩家分数
@@ -198,6 +202,7 @@
 ### 3.6 心跳超时与掉线判定
 
 - 接收 `PlayerHeartbeatEvent`
+- 从 `WsMessage` 解包并分发 `PlayerHeartbeatEvent`
 - 记录每个玩家最后一次心跳时间
 - 9 秒超时检测
 - 3 秒复检窗口
@@ -237,7 +242,7 @@
 - 当两名玩家都 finished 时生成 `RoomResult`
 - 计算 `winner_username`
 - 计算调用方视角的 `self_result`
-- 广播 `GameFinishedBroadcast`
+- 广播承载 `GameFinishedBroadcast` 的 `WsMessage`
 
 交付结果：
 
